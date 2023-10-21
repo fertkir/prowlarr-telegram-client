@@ -1,0 +1,15 @@
+[package]
+name = "prowlarr-telegram-client"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3"
+authors = ["Kirill Fertikov"]
+repository = "https://github.com/fertkir/prowlarr-telegram-client"
+keywords = ["torrents", "telegram-bot", "prowlarr"]
+
+[dependencies]
+teloxide = { version = "0.12.2", features = ["macros"] }
+tokio = { version = "1.32.0", features = ["rt-multi-thread", "macros"] }
+log = "0.4.20"
+env_logger = "0.10.0"
+rust-i18n = "2.2.1"
