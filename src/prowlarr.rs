@@ -7,7 +7,7 @@ pub struct ProwlarrClient {
     base_url: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResult {
     pub guid: String,
