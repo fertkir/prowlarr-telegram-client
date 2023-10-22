@@ -3,7 +3,6 @@ use reqwest::Client;
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone)]
 pub struct ProwlarrClient {
     api_key: String,
     base_url: String,
@@ -26,11 +25,11 @@ pub struct SearchResult {
     pub grabs: Option<u32>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
-struct DownloadParams {
-    guid: String,
-    indexer_id: u8,
+pub struct DownloadParams {
+    pub guid: String,
+    pub indexer_id: u8,
 }
 
 impl ProwlarrClient {
@@ -42,7 +41,7 @@ impl ProwlarrClient {
         }
     }
 
-    pub async fn search(self, query: &str) -> reqwest::Result<Vec<SearchResult>> {
+    pub async fn search(&self, query: &str) -> reqwest::Result<Vec<SearchResult>> {
         self.client.get(format!("{}/api/v1/search?apikey={}&query={}",
                                 self.base_url, self.api_key, query))
             .send()
@@ -51,11 +50,11 @@ impl ProwlarrClient {
             .await
     }
 
-    pub async fn download(self, indexer_id: u8, guid: String) -> bool {
+    pub async fn download(&self, params: &DownloadParams) -> bool {
         let response =
             self.client.post(format!("{}/api/v1/search?apikey={}", self.base_url, self.api_key))
                 .header(CONTENT_TYPE, "application/json")
-                .json(&DownloadParams { indexer_id, guid })
+                .json(params)
                 .send()
                 .await;
         match response {
