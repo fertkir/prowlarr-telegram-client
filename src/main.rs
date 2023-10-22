@@ -67,8 +67,10 @@ async fn message_handler(prowlarr: Arc<ProwlarrClient>,
                     bot.send_message(msg.chat.id, t!("no_results", request = m)).await?;
                 }
                 Some(response) => {
-                    bot.parse_mode(ParseMode::Markdown) // todo is it a good idea to call parse_mode() every time?
-                        .send_message(msg.chat.id, response).await?;
+                    bot.send_message(msg.chat.id, response)
+                        .parse_mode(ParseMode::Markdown)
+                        .disable_web_page_preview(true)
+                        .await?;
                 }
             }
         } else if m.starts_with("/d_") {
@@ -95,13 +97,12 @@ async fn message_handler(prowlarr: Arc<ProwlarrClient>,
 
 impl SearchResult {
     fn to_msg(&self, bot_uuid: &str) -> String {
-        let grabs = match self.grabs {
-            None => String::new(), // todo do not create a heap object
-            Some(grabs) => format!("{} {}", t!("downloaded"), grabs)
-        };
+        let downloads = self.grabs
+            .map(|grabs| format!("{} {}", t!("downloaded"), grabs))
+            .unwrap_or_else(String::new);
         format!("{}\n{}\nS {} | L {} | {} | {} {} | {} {}\n{}: /d\\_{}\n{}: /m\\_{}\n\n",
                 self.title, link(&self.info_url, &t!("description")),
-                self.seeders, self.leechers, grabs, &t!("registered"), self.publish_date.date_naive(),
+                self.seeders, self.leechers, downloads, &t!("registered"), self.publish_date.date_naive(),
                 &t!("size"), Byte::from_bytes(self.size).get_appropriate_unit(false),
                 bold(&t!("download")), bot_uuid, &t!("get_link"), bot_uuid)
     }
