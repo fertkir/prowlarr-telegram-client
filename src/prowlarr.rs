@@ -1,16 +1,20 @@
 use chrono::{DateTime, Utc};
-use serde::Deserialize;
+use reqwest::Client;
+use reqwest::header::CONTENT_TYPE;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone)]
 pub struct ProwlarrClient {
     api_key: String,
     base_url: String,
+    client: Client,
 }
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResult {
     pub guid: String,
+    pub indexer_id: u8,
     pub title: String,
     pub size: u128,
     pub publish_date: DateTime<Utc>,
@@ -19,7 +23,14 @@ pub struct SearchResult {
     pub info_url: String,
     pub seeders: u32,
     pub leechers: u32,
-    pub grabs: Option<u32>
+    pub grabs: Option<u32>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct DownloadParams {
+    guid: String,
+    indexer_id: u8,
 }
 
 impl ProwlarrClient {
@@ -27,15 +38,33 @@ impl ProwlarrClient {
         ProwlarrClient {
             api_key: std::env::var("PROWLARR_API_KEY").unwrap(),
             base_url: std::env::var("PROWLARR_BASE_URL").unwrap(),
+            client: Client::new(),
         }
     }
 
     pub async fn search(self, query: &str) -> reqwest::Result<Vec<SearchResult>> {
-        let url = format!("{}/api/v1/search?apikey={}&query={}",
-                             self.base_url, self.api_key, query);
-        reqwest::get(url)
+        self.client.get(format!("{}/api/v1/search?apikey={}&query={}",
+                                self.base_url, self.api_key, query))
+            .send()
             .await?
             .json::<Vec<SearchResult>>()
             .await
+    }
+
+    pub async fn download(self, indexer_id: u8, guid: String) -> bool {
+        let response =
+            self.client.post(format!("{}/api/v1/search?apikey={}", self.base_url, self.api_key))
+                .header(CONTENT_TYPE, "application/json")
+                .json(&DownloadParams { indexer_id, guid })
+                .send()
+                .await;
+        match response {
+            Ok(response) => {
+                response.status().is_success()
+            }
+            Err(_) => {
+                false
+            }
+        }
     }
 }
