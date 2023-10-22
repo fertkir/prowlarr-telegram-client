@@ -20,7 +20,7 @@ mod uuid_mapper;
 
 const RESULTS_COUNT: usize = 10;
 
-i18n!("locales", fallback = "en");
+i18n!("locales", fallback = "en"); // todo pass language_code
 
 #[tokio::main]
 async fn main() {
@@ -61,9 +61,16 @@ async fn message_handler(prowlarr: Arc<ProwlarrClient>,
                     });
                     search_result.to_msg(&bot_uuid)
                 })
-                .fold(String::new(), |acc, e| acc + &e);
-            bot.parse_mode(ParseMode::Markdown) // todo is it a good idea to call parse_mode() every time?
-                .send_message(msg.chat.id, response).await?;
+                .reduce(|acc, e| acc + &e);
+            match response {
+                None => {
+                    bot.send_message(msg.chat.id, t!("no_results", request = m)).await?;
+                }
+                Some(response) => {
+                    bot.parse_mode(ParseMode::Markdown) // todo is it a good idea to call parse_mode() every time?
+                        .send_message(msg.chat.id, response).await?;
+                }
+            }
         } else if m.starts_with("/d_") {
             match uuid_mapper.get(&m[3..]) {
                 None => {
