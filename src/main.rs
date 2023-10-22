@@ -2,6 +2,7 @@
 extern crate rust_i18n;
 
 use std::sync::Arc;
+
 use byte_unit::Byte;
 use rust_i18n::t;
 use teloxide::prelude::*;
@@ -16,6 +17,8 @@ use crate::uuid_mapper::UuidMapper;
 
 mod prowlarr;
 mod uuid_mapper;
+
+const RESULTS_COUNT: usize = 10;
 
 i18n!("locales", fallback = "en");
 
@@ -50,7 +53,7 @@ async fn message_handler(prowlarr: Arc<ProwlarrClient>,
             results.sort_unstable_by(|a, b| b.seeders.cmp(&a.seeders));
             let response = results
                 .iter()
-                .take(10)
+                .take(RESULTS_COUNT)
                 .map(|search_result| {
                     let bot_uuid = &uuid_mapper.put(DownloadParams {
                         indexer_id: search_result.indexer_id,
@@ -68,7 +71,7 @@ async fn message_handler(prowlarr: Arc<ProwlarrClient>,
                 }
                 Some(params) => {
                     if prowlarr.download(&params).await {
-                        bot.send_message(msg.chat.id, t!("Sent for downloading")).await?;
+                        bot.send_message(msg.chat.id, t!("sent_to_download")).await?;
                     } else {
                         bot.send_message(msg.chat.id, "Could not send to download").await?; // todo change message
                     }
@@ -77,7 +80,7 @@ async fn message_handler(prowlarr: Arc<ProwlarrClient>,
         } else if m.starts_with("/m_") {
             // todo implement
         } else {
-            bot.send_message(msg.chat.id, t!("Help Message")).await?;
+            bot.send_message(msg.chat.id, t!("help")).await?;
         }
     }
     Ok(())
@@ -87,12 +90,12 @@ impl SearchResult {
     fn to_msg(&self, bot_uuid: &str) -> String {
         let grabs = match self.grabs {
             None => String::new(), // todo do not create a heap object
-            Some(grabs) => format!("{} {}", t!("Downloaded"), grabs)
+            Some(grabs) => format!("{} {}", t!("downloaded"), grabs)
         };
-        format!("{}\n{}\nS {} | L {} | {} | {} {} | {} {}\n{} /d\\_{}\n{} /m\\_{}\n\n", self.title,
-                link(&self.info_url, &t!("Description")),
-                self.seeders, self.leechers, grabs, &t!("Reg"), self.publish_date.date_naive(),
-                &t!("Size"), Byte::from_bytes(self.size).get_appropriate_unit(false),
-                bold(&t!("Download")), bot_uuid, &t!("Get link"), bot_uuid)
+        format!("{}\n{}\nS {} | L {} | {} | {} {} | {} {}\n{}: /d\\_{}\n{}: /m\\_{}\n\n",
+                self.title, link(&self.info_url, &t!("description")),
+                self.seeders, self.leechers, grabs, &t!("registered"), self.publish_date.date_naive(),
+                &t!("size"), Byte::from_bytes(self.size).get_appropriate_unit(false),
+                bold(&t!("download")), bot_uuid, &t!("get_link"), bot_uuid)
     }
 }

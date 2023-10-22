@@ -1,0 +1,34 @@
+_version: 2
+help:
+  en: Send me the name of the movie of interest.\nI'll send you available options.
+  ru: Отправьте мне название фильма, который хотите скачать.\nЯ пришлю варианты.
+sent_to_download:
+  en: Sent for downloading
+  ru: Отправлено на скачивание
+description:
+  en: Description
+  ru: Описание
+downloaded:
+  en: Downloaded
+  ru: Скачали
+size:
+  en: Size
+  ru: Размер
+registered:
+  en: Reg
+  ru: Рег
+download:
+  en: Download
+  ru: Скачать
+get_torrent_file:
+  en: Get .torrent file
+  ru: Получить .torrent файл
+get_link:
+  en: Get link
+  ru: Получить ссылку
+no_results:
+  en: No results for "%{request}"
+  ru: Результатов по запросу "%{request}" не найдено
+download_complete:
+  en: Downloaded "%{name}"
+  ru: Завершена загрузка "%{name}"
