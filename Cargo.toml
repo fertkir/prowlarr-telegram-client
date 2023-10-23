@@ -8,7 +8,7 @@ repository = "https://github.com/fertkir/prowlarr-telegram-client"
 keywords = ["torrents", "telegram-bot", "prowlarr"]
 
 [dependencies]
-teloxide = { version = "0.12.2", features = ["macros"] }
+teloxide = { version = "0.12.2", features = ["macros", "webhooks", "webhooks-axum"] }
 tokio = { version = "1.32.0", features = ["rt-multi-thread", "macros"] }
 log = "0.4.20"
 env_logger = "0.10.0"

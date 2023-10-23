@@ -4,6 +4,7 @@ extern crate rust_i18n;
 use std::sync::Arc;
 
 use teloxide::prelude::*;
+use teloxide::update_listeners::webhooks;
 
 use prowlarr::ProwlarrClient;
 
@@ -26,12 +27,27 @@ async fn main() {
     let handler = dptree::entry()
         .branch(Update::filter_message().endpoint(message_handling::message_handler));
 
-    Dispatcher::builder(bot, handler)
+    let webhook_listener = if let (Ok(port), Ok(url)) = (std::env::var("WEBHOOK_PORT"), std::env::var("WEBHOOK_URL")) {
+        let addr = ([127, 0, 0, 1], port.parse().unwrap()).into();
+        Some(webhooks::axum(bot.clone(), webhooks::Options::new(addr, reqwest::Url::parse(&url).unwrap()))
+            .await
+            .unwrap())
+    } else {
+        None
+    };
+
+    let mut dispatcher = Dispatcher::builder(bot, handler)
         .dependencies(dptree::deps![
             Arc::new(ProwlarrClient::from_env()),
             Arc::new(UuidMapper::<DownloadParams>::new())])
         .enable_ctrlc_handler()
-        .build()
-        .dispatch()
-        .await;
+        .build();
+    if webhook_listener.is_some() {
+        dispatcher.dispatch_with_listener(
+            webhook_listener.unwrap(),
+            LoggingErrorHandler::with_custom_text("An error from the update listener"))
+            .await
+    } else {
+        dispatcher.dispatch().await;
+    }
 }
