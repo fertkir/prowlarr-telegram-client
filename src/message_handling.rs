@@ -103,7 +103,7 @@ async fn download(prowlarr: Arc<ProwlarrClient>,
                   uuid_mapper: Arc<UuidMapper<DownloadParams>>,
                   bot: &Bot,
                   msg: &Message,
-                  msg_text: &&str,
+                  msg_text: &str,
                   locale: &String) -> ResponseResult<Message> {
     match uuid_mapper.get(&msg_text[3..]) {
         None => {
