@@ -1,9 +1,11 @@
 use std::sync::Arc;
 
 use byte_unit::Byte;
+use reqwest::Error;
 use teloxide::Bot;
-use teloxide::payloads::SendMessageSetters;
+use teloxide::payloads::{SendMessage, SendMessageSetters};
 use teloxide::prelude::{Message, Requester, ResponseResult};
+use teloxide::requests::JsonRequest;
 use teloxide::types::ParseMode;
 use teloxide::utils::markdown::bold;
 use teloxide::utils::markdown::link;
@@ -47,9 +49,8 @@ async fn search(prowlarr: &Arc<ProwlarrClient>,
                 locale: &String) -> ResponseResult<Message> {
     log::info!("Received message \"{}\" from user {}", msg_text, msg.chat.id);
     match prowlarr.search(msg_text).await {
-        Ok(mut results) => {
-            results.sort_unstable_by(|a, b| b.seeders.cmp(&a.seeders));
-            let response = results
+        Ok(results) => {
+            let response = sorted_by_seeders(results)
                 .iter()
                 .take(RESULTS_COUNT)
                 .map(|search_result| {
@@ -71,11 +72,13 @@ async fn search(prowlarr: &Arc<ProwlarrClient>,
                 }
             }
         }
-        Err(err) => {
-            log::error!("Error when searching in prowlarr: {}", err);
-            bot.send_message(msg.chat.id, t!("prowlarr_error", locale = &locale))
-        }
+        Err(err) => handle_prowlarr_error(bot, msg, locale, err)
     }.await
+}
+
+fn sorted_by_seeders(mut results: Vec<SearchResult>) -> Vec<SearchResult> {
+    results.sort_unstable_by(|a, b| b.seeders.cmp(&a.seeders));
+    results
 }
 
 fn create_response(search_result: &SearchResult, bot_uuid: &str, locale: &str) -> String {
@@ -89,6 +92,11 @@ fn create_response(search_result: &SearchResult, bot_uuid: &str, locale: &str) -
             Byte::from_bytes(search_result.size).get_appropriate_unit(false),
             bold(&t!("download", locale = &locale)), bot_uuid,
             &t!("get_link", locale = &locale), bot_uuid)
+}
+
+fn handle_prowlarr_error(bot: &Bot, msg: &Message, locale: &String, err: Error) -> JsonRequest<SendMessage> {
+    log::error!("Error when searching in Prowlarr: {}", err);
+    bot.send_message(msg.chat.id, t!("prowlarr_error", locale = &locale))
 }
 
 async fn download(prowlarr: Arc<ProwlarrClient>,
@@ -112,10 +120,7 @@ async fn download(prowlarr: Arc<ProwlarrClient>,
                         bot.send_message(msg.chat.id, t!("could_not_send_to_download", locale = &locale))
                     }
                 }
-                Err(err) => {
-                    log::error!("Error when searching in prowlarr: {}", err);
-                    bot.send_message(msg.chat.id, t!("prowlarr_error", locale = &locale))
-                }
+                Err(err) => handle_prowlarr_error(bot, msg, locale, err)
             }
         }
     }.await
