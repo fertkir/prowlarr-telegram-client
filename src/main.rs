@@ -50,28 +50,35 @@ async fn message_handler(prowlarr: Arc<ProwlarrClient>,
         let locale = get_locale(&msg);
         if !m.starts_with("/") {
             log::info!("Received message \"{}\" from user {}", m, msg.chat.id);
-            let mut results = prowlarr.search(m).await?;
-            results.sort_unstable_by(|a, b| b.seeders.cmp(&a.seeders));
-            let response = results
-                .iter()
-                .take(RESULTS_COUNT)
-                .map(|search_result| {
-                    let bot_uuid = &uuid_mapper.put(DownloadParams {
-                        indexer_id: search_result.indexer_id,
-                        guid: search_result.guid.clone()
-                    });
-                    search_result.to_msg(&bot_uuid, &locale)
-                })
-                .reduce(|acc, e| acc + &e);
-            match response {
-                None => {
-                    bot.send_message(msg.chat.id, t!("no_results", locale = &locale, request = m)).await?;
+            match prowlarr.search(m).await {
+                Ok(mut results) => {
+                    results.sort_unstable_by(|a, b| b.seeders.cmp(&a.seeders));
+                    let response = results
+                        .iter()
+                        .take(RESULTS_COUNT)
+                        .map(|search_result| {
+                            let bot_uuid = &uuid_mapper.put(DownloadParams {
+                                indexer_id: search_result.indexer_id,
+                                guid: search_result.guid.clone(),
+                            });
+                            search_result.to_msg(&bot_uuid, &locale)
+                        })
+                        .reduce(|acc, e| acc + &e);
+                    match response {
+                        None => {
+                            bot.send_message(msg.chat.id, t!("no_results", locale = &locale, request = m)).await?;
+                        }
+                        Some(response) => {
+                            bot.send_message(msg.chat.id, response)
+                                .parse_mode(ParseMode::Markdown)
+                                .disable_web_page_preview(true)
+                                .await?;
+                        }
+                    }
                 }
-                Some(response) => {
-                    bot.send_message(msg.chat.id, response)
-                        .parse_mode(ParseMode::Markdown)
-                        .disable_web_page_preview(true)
-                        .await?;
+                Err(err) => {
+                    log::error!("Error when searching in prowlarr: {}", err);
+                    bot.send_message(msg.chat.id, t!("prowlarr_error", locale = &locale)).await?;
                 }
             }
         } else if m.starts_with("/d_") {

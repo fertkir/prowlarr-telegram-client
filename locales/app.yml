@@ -32,3 +32,6 @@ no_results:
 download_complete:
   en: Downloaded "%{name}"
   ru: Завершена загрузка "%{name}"
+prowlarr_error:
+  en: Search/downloads aren't available. Please contact support.
+  ru: Поиск/скачивание недоступны. Пожалуйста, обратитесь в поддержку.
