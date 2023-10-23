@@ -23,7 +23,7 @@ async fn main() {
     env_logger::init();
     log::info!("Starting torrents bot...");
 
-    let bot = Bot::from_env();
+    let bot = Bot::from_env(); // add TELOXIDE_PROXY env var to proxy to Telegram
 
     let handler = dptree::entry()
         .branch(Update::filter_message().endpoint(message_handling::message_handler));
