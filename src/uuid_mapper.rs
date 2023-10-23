@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use std::sync::atomic::{AtomicU32, Ordering};
 
 use dashmap::DashMap;
@@ -8,7 +7,7 @@ use rand::Rng;
 pub struct UuidMapper<V: Clone> {
     session_key: String,
     map: DashMap<String, V>,
-    sequence: Arc<AtomicU32>
+    sequence: AtomicU32
 }
 
 impl<V: Clone> UuidMapper<V> {
@@ -20,7 +19,7 @@ impl<V: Clone> UuidMapper<V> {
                 .map(char::from)
                 .collect::<String>(),
             map: DashMap::new(),
-            sequence: Arc::new(AtomicU32::new(1))
+            sequence: AtomicU32::new(1)
         }
     }
 
