@@ -65,8 +65,7 @@ async fn search(prowlarr: &Arc<ProwlarrClient>,
                     bot.send_message(msg.chat.id, t!("no_results", locale = &locale, request = msg_text)).await?;
                 }
                 Some(response) => {
-                    bot
-                        .send_message(msg.chat.id, response)
+                    bot.send_message(msg.chat.id, response)
                         .parse_mode(ParseMode::Markdown)
                         .disable_web_page_preview(true)
                         .await?;
@@ -124,4 +123,3 @@ async fn download(prowlarr: Arc<ProwlarrClient>,
     }
     Ok(())
 }
-
