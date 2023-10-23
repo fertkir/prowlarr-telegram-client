@@ -61,7 +61,7 @@ async fn message_handler(prowlarr: Arc<ProwlarrClient>,
                                 indexer_id: search_result.indexer_id,
                                 guid: search_result.guid.clone(),
                             });
-                            search_result.to_msg(&bot_uuid, &locale)
+                            create_response(&search_result, &bot_uuid, &locale)
                         })
                         .reduce(|acc, e| acc + &e);
                     match response {
@@ -84,13 +84,23 @@ async fn message_handler(prowlarr: Arc<ProwlarrClient>,
         } else if m.starts_with("/d_") {
             match uuid_mapper.get(&m[3..]) {
                 None => {
-                    bot.send_message(msg.chat.id, "Not found").await?; // todo change message
+                    bot.send_message(msg.chat.id, t!("link_not_found", locale = &locale)).await?;
                 }
                 Some(params) => {
-                    if prowlarr.download(&params).await {
-                        bot.send_message(msg.chat.id, t!("sent_to_download", locale = &locale)).await?;
-                    } else {
-                        bot.send_message(msg.chat.id, "Could not send to download").await?; // todo change message
+                    match prowlarr.download(&params).await {
+                        Ok(response) => {
+                            if response.status().is_success() {
+                                bot.send_message(msg.chat.id, t!("sent_to_download", locale = &locale)).await?;
+                            } else {
+                                log::error!("Download response from Prowlarr wasn't successful: {} {}",
+                                    response.status(), response.text().await.unwrap_or_default());
+                                bot.send_message(msg.chat.id, t!("could_not_send_to_download", locale = &locale)).await?;
+                            }
+                        }
+                        Err(err) => {
+                            log::error!("Error when searching in prowlarr: {}", err);
+                            bot.send_message(msg.chat.id, t!("prowlarr_error", locale = &locale)).await?;
+                        }
                     }
                 }
             }
@@ -110,17 +120,15 @@ fn get_locale(msg: &Message) -> String {
         .unwrap_or(String::from("en"))
 }
 
-impl SearchResult {
-    fn to_msg(&self, bot_uuid: &str, locale: &str) -> String {
-        let downloads = self.grabs
-            .map(|grabs| format!("{} {}", t!("downloaded", locale = &locale), grabs))
-            .unwrap_or_else(String::new);
-        format!("{}\n{}\nS {} | L {} | {} | {} {} | {} {}\n{}: /d\\_{}\n{}: /m\\_{}\n\n",
-                self.title, link(&self.info_url, &t!("description", locale = &locale)),
-                self.seeders, self.leechers, downloads, &t!("registered", locale = &locale),
-                self.publish_date.date_naive(), &t!("size", locale = &locale),
-                Byte::from_bytes(self.size).get_appropriate_unit(false),
-                bold(&t!("download", locale = &locale)), bot_uuid,
-                &t!("get_link", locale = &locale), bot_uuid)
-    }
+fn create_response(search_result: &SearchResult, bot_uuid: &str, locale: &str) -> String {
+    let downloads = search_result.grabs
+        .map(|grabs| format!("{} {}", t!("downloaded", locale = &locale), grabs))
+        .unwrap_or_else(String::new);
+    format!("{}\n{}\nS {} | L {} | {} | {} {} | {} {}\n{}: /d\\_{}\n{}: /m\\_{}\n\n",
+            search_result.title, link(&search_result.info_url, &t!("description", locale = &locale)),
+            search_result.seeders, search_result.leechers, downloads, &t!("registered", locale = &locale),
+            search_result.publish_date.date_naive(), &t!("size", locale = &locale),
+            Byte::from_bytes(search_result.size).get_appropriate_unit(false),
+            bold(&t!("download", locale = &locale)), bot_uuid,
+            &t!("get_link", locale = &locale), bot_uuid)
 }

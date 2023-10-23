@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use reqwest::Client;
+use reqwest::{Client, Response};
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
 
@@ -50,20 +50,11 @@ impl ProwlarrClient {
             .await
     }
 
-    pub async fn download(&self, params: &DownloadParams) -> bool {
-        let response =
-            self.client.post(format!("{}/api/v1/search?apikey={}", self.base_url, self.api_key))
-                .header(CONTENT_TYPE, "application/json")
-                .json(params)
-                .send()
-                .await;
-        match response {
-            Ok(response) => {
-                response.status().is_success()
-            }
-            Err(_) => {
-                false
-            }
-        }
+    pub async fn download(&self, params: &DownloadParams) -> reqwest::Result<Response> {
+        self.client.post(format!("{}/api/v1/search?apikey={}", self.base_url, self.api_key))
+            .header(CONTENT_TYPE, "application/json")
+            .json(params)
+            .send()
+            .await
     }
 }

@@ -5,6 +5,9 @@ help:
 sent_to_download:
   en: Sent for downloading
   ru: Отправлено на скачивание
+could_not_send_to_download:
+  en: Could not send for downloading. Please contact support.
+  ru: Не удалось отправить на скачивание. Пожалуйста, обратитесь в поддержку.
 description:
   en: Description
   ru: Описание
@@ -35,3 +38,6 @@ download_complete:
 prowlarr_error:
   en: Search/downloads aren't available. Please contact support.
   ru: Поиск/скачивание недоступны. Пожалуйста, обратитесь в поддержку.
+link_not_found:
+  en: Could not find the link, probably it's out of date. Please repeat your search to get new links.
+  ru: Не удалось найти ссылку, возможно она устарела. Пожалуйста, повторите поиск, чтобы получить обновленные ссылки.
