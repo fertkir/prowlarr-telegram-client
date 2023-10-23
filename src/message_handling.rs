@@ -17,21 +17,28 @@ const RESULTS_COUNT: usize = 10;
 
 pub async fn message_handler(prowlarr: Arc<ProwlarrClient>,
                              uuid_mapper: Arc<UuidMapper<DownloadParams>>,
+                             allowed_users: Vec<u64>,
                              bot: Bot,
                              msg: Message) -> ResponseResult<()> {
-    if let Some(msg_text) = msg.text() {
-        let locale = get_locale(&msg);
-        if !msg_text.starts_with("/") {
-            search(&prowlarr, &uuid_mapper, &bot, &msg, msg_text, &locale).await?;
-        } else if msg_text.starts_with("/d_") {
-            download(prowlarr, uuid_mapper, &bot, &msg, &msg_text, &locale).await?;
-        } else if msg_text.starts_with("/m_") {
-            // todo implement
-        } else {
-            bot.send_message(msg.chat.id, t!("help", locale = &locale)).await?;
+    if allowed_users.is_empty() || allowed_users.contains(&get_user_id(&msg)) {
+        if let Some(msg_text) = msg.text() {
+            let locale = get_locale(&msg);
+            if !msg_text.starts_with("/") {
+                search(&prowlarr, &uuid_mapper, &bot, &msg, msg_text, &locale).await?;
+            } else if msg_text.starts_with("/d_") {
+                download(prowlarr, uuid_mapper, &bot, &msg, &msg_text, &locale).await?;
+            } else if msg_text.starts_with("/m_") {
+                // todo implement
+            } else {
+                bot.send_message(msg.chat.id, t!("help", locale = &locale)).await?;
+            }
         }
     }
     Ok(())
+}
+
+fn get_user_id(msg: &Message) -> u64 {
+    msg.from().map(|from|from.id.0).unwrap_or(0)
 }
 
 fn get_locale(msg: &Message) -> String {

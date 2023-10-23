@@ -14,6 +14,7 @@ use crate::uuid_mapper::UuidMapper;
 mod prowlarr;
 mod uuid_mapper;
 mod message_handling;
+mod util;
 
 i18n!("locales", fallback = "en");
 
@@ -39,7 +40,8 @@ async fn main() {
     let mut dispatcher = Dispatcher::builder(bot, handler)
         .dependencies(dptree::deps![
             Arc::new(ProwlarrClient::from_env()),
-            Arc::new(UuidMapper::<DownloadParams>::new())])
+            Arc::new(UuidMapper::<DownloadParams>::new()),
+            get_allowed_users()])
         .enable_ctrlc_handler()
         .build();
     if webhook_listener.is_some() {
@@ -49,5 +51,15 @@ async fn main() {
             .await
     } else {
         dispatcher.dispatch().await;
+    }
+}
+
+fn get_allowed_users() -> Vec<u64> {
+    match std::env::var("ALLOWED_USERS") {
+        Ok(users) => users
+            .split(",")
+            .map(|user| user.parse::<u64>().unwrap())
+            .collect(),
+        Err(_) => Vec::new()
     }
 }

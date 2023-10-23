@@ -3,6 +3,8 @@ use reqwest::{Client, Response};
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
 
+use crate::util;
+
 pub struct ProwlarrClient {
     api_key: String,
     base_url: String,
@@ -35,8 +37,8 @@ pub struct DownloadParams {
 impl ProwlarrClient {
     pub fn from_env() -> ProwlarrClient {
         ProwlarrClient {
-            api_key: std::env::var("PROWLARR_API_KEY").unwrap(),
-            base_url: std::env::var("PROWLARR_BASE_URL").unwrap(),
+            api_key: util::get_env("PROWLARR_API_KEY"),
+            base_url: util::get_env("PROWLARR_BASE_URL"),
             client: Client::new(),
         }
     }
