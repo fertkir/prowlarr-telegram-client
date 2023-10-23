@@ -20,7 +20,7 @@ mod uuid_mapper;
 
 const RESULTS_COUNT: usize = 10;
 
-i18n!("locales", fallback = "en"); // todo pass language_code
+i18n!("locales", fallback = "en");
 
 #[tokio::main]
 async fn main() {
@@ -47,6 +47,7 @@ async fn message_handler(prowlarr: Arc<ProwlarrClient>,
                          bot: Bot,
                          msg: Message) -> ResponseResult<()> {
     if let Some(m) = msg.text() {
+        let locale = get_locale(&msg);
         if !m.starts_with("/") {
             log::info!("Received message \"{}\" from user {}", m, msg.chat.id);
             let mut results = prowlarr.search(m).await?;
@@ -59,12 +60,12 @@ async fn message_handler(prowlarr: Arc<ProwlarrClient>,
                         indexer_id: search_result.indexer_id,
                         guid: search_result.guid.clone()
                     });
-                    search_result.to_msg(&bot_uuid)
+                    search_result.to_msg(&bot_uuid, &locale)
                 })
                 .reduce(|acc, e| acc + &e);
             match response {
                 None => {
-                    bot.send_message(msg.chat.id, t!("no_results", request = m)).await?;
+                    bot.send_message(msg.chat.id, t!("no_results", locale = &locale, request = m)).await?;
                 }
                 Some(response) => {
                     bot.send_message(msg.chat.id, response)
@@ -80,7 +81,7 @@ async fn message_handler(prowlarr: Arc<ProwlarrClient>,
                 }
                 Some(params) => {
                     if prowlarr.download(&params).await {
-                        bot.send_message(msg.chat.id, t!("sent_to_download")).await?;
+                        bot.send_message(msg.chat.id, t!("sent_to_download", locale = &locale)).await?;
                     } else {
                         bot.send_message(msg.chat.id, "Could not send to download").await?; // todo change message
                     }
@@ -89,21 +90,30 @@ async fn message_handler(prowlarr: Arc<ProwlarrClient>,
         } else if m.starts_with("/m_") {
             // todo implement
         } else {
-            bot.send_message(msg.chat.id, t!("help")).await?;
+            bot.send_message(msg.chat.id, t!("help", locale = &locale)).await?;
         }
     }
     Ok(())
 }
 
+fn get_locale(msg: &Message) -> String {
+    msg.from()
+        .map(|u| u.language_code.clone())
+        .flatten()
+        .unwrap_or(String::from("en"))
+}
+
 impl SearchResult {
-    fn to_msg(&self, bot_uuid: &str) -> String {
+    fn to_msg(&self, bot_uuid: &str, locale: &str) -> String {
         let downloads = self.grabs
-            .map(|grabs| format!("{} {}", t!("downloaded"), grabs))
+            .map(|grabs| format!("{} {}", t!("downloaded", locale = &locale), grabs))
             .unwrap_or_else(String::new);
         format!("{}\n{}\nS {} | L {} | {} | {} {} | {} {}\n{}: /d\\_{}\n{}: /m\\_{}\n\n",
-                self.title, link(&self.info_url, &t!("description")),
-                self.seeders, self.leechers, downloads, &t!("registered"), self.publish_date.date_naive(),
-                &t!("size"), Byte::from_bytes(self.size).get_appropriate_unit(false),
-                bold(&t!("download")), bot_uuid, &t!("get_link"), bot_uuid)
+                self.title, link(&self.info_url, &t!("description", locale = &locale)),
+                self.seeders, self.leechers, downloads, &t!("registered", locale = &locale),
+                self.publish_date.date_naive(), &t!("size", locale = &locale),
+                Byte::from_bytes(self.size).get_appropriate_unit(false),
+                bold(&t!("download", locale = &locale)), bot_uuid,
+                &t!("get_link", locale = &locale), bot_uuid)
     }
 }

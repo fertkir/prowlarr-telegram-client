@@ -1,7 +1,7 @@
 _version: 2
 help:
-  en: Send me the name of the movie of interest.\nI'll send you available options.
-  ru: Отправьте мне название фильма, который хотите скачать.\nЯ пришлю варианты.
+  en: Send me the name of the movie of interest.\nI'll send you available options. # fixme \n doesn't work
+  ru: Отправьте мне название фильма, который хотите скачать.\nЯ пришлю варианты. # fixme \n doesn't work
 sent_to_download:
   en: Sent for downloading
   ru: Отправлено на скачивание
