@@ -28,25 +28,20 @@ async fn main() {
     let handler = dptree::entry()
         .branch(Update::filter_message().endpoint(message_handling::message_handler));
 
-    let webhook_listener = if let (Ok(port), Ok(url)) = (std::env::var("WEBHOOK_PORT"), std::env::var("WEBHOOK_URL")) {
-        let addr = ([127, 0, 0, 1], port.parse().unwrap()).into();
-        Some(webhooks::axum(bot.clone(), webhooks::Options::new(addr, reqwest::Url::parse(&url).unwrap()))
-            .await
-            .unwrap())
-    } else {
-        None
-    };
-
-    let mut dispatcher = Dispatcher::builder(bot, handler)
+    let mut dispatcher = Dispatcher::builder(bot.clone(), handler)
         .dependencies(dptree::deps![
             Arc::new(ProwlarrClient::from_env()),
             Arc::new(TorrentDataStore::new()),
             get_allowed_users()])
         .enable_ctrlc_handler()
         .build();
-    if webhook_listener.is_some() {
+    if let (Ok(port), Ok(url)) = (std::env::var("WEBHOOK_PORT"), std::env::var("WEBHOOK_URL")) {
+        let addr = ([127, 0, 0, 1], port.parse().unwrap()).into();
+        let webhook_listener = webhooks::axum(bot, webhooks::Options::new(addr, reqwest::Url::parse(&url).unwrap()))
+            .await
+            .unwrap();
         dispatcher.dispatch_with_listener(
-            webhook_listener.unwrap(),
+            webhook_listener,
             LoggingErrorHandler::with_custom_text("An error from the update listener"))
             .await
     } else {
