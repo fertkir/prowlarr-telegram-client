@@ -60,6 +60,6 @@ fn get_allowed_users() -> Vec<u64> {
             .split(",")
             .map(|user| user.parse::<u64>().unwrap())
             .collect(),
-        Err(_) => Vec::new()
+        Err(_) => vec![]
     }
 }
