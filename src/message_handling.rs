@@ -6,17 +6,17 @@ use teloxide::Bot;
 use teloxide::payloads::{SendMessage, SendMessageSetters};
 use teloxide::prelude::{Message, Requester, ResponseResult};
 use teloxide::requests::JsonRequest;
-use teloxide::types::ParseMode;
+use teloxide::types::{ChatId, InputFile, ParseMode};
 use teloxide::utils::markdown::bold;
 use teloxide::utils::markdown::link;
 
-use crate::prowlarr::{DownloadParams, ProwlarrClient, SearchResult};
-use crate::uuid_mapper::UuidMapper;
+use crate::prowlarr::{ProwlarrClient, SearchResult};
+use crate::torrent_data::{TorrentData, TorrentDataStore};
 
 const RESULTS_COUNT: usize = 10;
 
 pub async fn message_handler(prowlarr: Arc<ProwlarrClient>,
-                             uuid_mapper: Arc<UuidMapper<DownloadParams>>,
+                             torrent_data_store: Arc<TorrentDataStore>,
                              allowed_users: Vec<u64>,
                              bot: Bot,
                              msg: Message) -> ResponseResult<()> {
@@ -24,11 +24,11 @@ pub async fn message_handler(prowlarr: Arc<ProwlarrClient>,
         if let Some(msg_text) = msg.text() {
             let locale = get_locale(&msg);
             if !msg_text.starts_with("/") {
-                search(&prowlarr, &uuid_mapper, &bot, &msg, msg_text, &locale).await?;
+                search(&prowlarr, &torrent_data_store, &bot, &msg, msg_text, &locale).await?;
             } else if msg_text.starts_with("/d_") {
-                download(prowlarr, uuid_mapper, &bot, &msg, &msg_text, &locale).await?;
+                download(&prowlarr, &torrent_data_store, &bot, &msg, &msg_text, &locale).await?;
             } else if msg_text.starts_with("/m_") {
-                // todo implement
+                get_link(&prowlarr, &torrent_data_store, &bot, &msg, &msg_text, &locale).await?;
             } else {
                 bot.send_message(msg.chat.id, t!("help", locale = &locale)).await?;
             }
@@ -38,7 +38,7 @@ pub async fn message_handler(prowlarr: Arc<ProwlarrClient>,
 }
 
 fn get_user_id(msg: &Message) -> u64 {
-    msg.from().map(|from|from.id.0).unwrap_or(0)
+    msg.from().map(|from| from.id.0).unwrap_or(0)
 }
 
 fn get_locale(msg: &Message) -> String {
@@ -49,11 +49,11 @@ fn get_locale(msg: &Message) -> String {
 }
 
 async fn search(prowlarr: &Arc<ProwlarrClient>,
-                uuid_mapper: &Arc<UuidMapper<DownloadParams>>,
+                torrent_data_store: &Arc<TorrentDataStore>,
                 bot: &Bot,
                 msg: &Message,
                 msg_text: &str,
-                locale: &String) -> ResponseResult<Message> {
+                locale: &String) -> ResponseResult<()> {
     log::info!("Received message \"{}\" from user {}", msg_text, msg.chat.id);
     match prowlarr.search(msg_text).await {
         Ok(results) => {
@@ -61,26 +61,30 @@ async fn search(prowlarr: &Arc<ProwlarrClient>,
                 .iter()
                 .take(RESULTS_COUNT)
                 .map(|search_result| {
-                    let bot_uuid = &uuid_mapper.put(DownloadParams {
+                    let bot_uuid = &torrent_data_store.put(TorrentData {
                         indexer_id: search_result.indexer_id,
+                        download_url: search_result.download_url.clone(),
                         guid: search_result.guid.clone(),
+                        magnet_url: search_result.magnet_url.clone(),
                     });
                     create_response(&search_result, &bot_uuid, &locale)
                 })
                 .reduce(|acc, e| acc + &e);
             match response {
                 None => {
-                    bot.send_message(msg.chat.id, t!("no_results", locale = &locale, request = msg_text))
+                    bot.send_message(msg.chat.id, t!("no_results", locale = &locale, request = msg_text)).await?;
                 }
                 Some(response) => {
                     bot.send_message(msg.chat.id, response)
                         .parse_mode(ParseMode::Markdown)
                         .disable_web_page_preview(true)
+                        .await?;
                 }
             }
         }
-        Err(err) => handle_prowlarr_error(bot, msg, locale, err)
-    }.await
+        Err(err) => handle_prowlarr_error(bot, msg, locale, err).await
+    }
+    Ok(())
 }
 
 fn sorted_by_seeders(mut results: Vec<SearchResult>) -> Vec<SearchResult> {
@@ -101,34 +105,84 @@ fn create_response(search_result: &SearchResult, bot_uuid: &str, locale: &str) -
             &t!("get_link", locale = &locale), bot_uuid)
 }
 
-fn handle_prowlarr_error(bot: &Bot, msg: &Message, locale: &String, err: Error) -> JsonRequest<SendMessage> {
+async fn handle_prowlarr_error(bot: &Bot, msg: &Message, locale: &String, err: Error) {
     log::error!("Error when searching in Prowlarr: {}", err);
-    bot.send_message(msg.chat.id, t!("prowlarr_error", locale = &locale))
+    bot.send_message(msg.chat.id, t!("prowlarr_error", locale = &locale)).await;
 }
 
-async fn download(prowlarr: Arc<ProwlarrClient>,
-                  uuid_mapper: Arc<UuidMapper<DownloadParams>>,
+async fn download(prowlarr: &Arc<ProwlarrClient>,
+                  torrent_data_store: &Arc<TorrentDataStore>,
                   bot: &Bot,
                   msg: &Message,
                   msg_text: &str,
-                  locale: &String) -> ResponseResult<Message> {
-    match uuid_mapper.get(&msg_text[3..]) {
+                  locale: &String) -> ResponseResult<()> {
+    match torrent_data_store.get(&msg_text[3..]) {
         None => {
-            bot.send_message(msg.chat.id, t!("link_not_found", locale = &locale))
-        }
-        Some(params) => {
-            match prowlarr.download(&params).await {
+            bot.send_message(msg.chat.id, t!("link_not_found", locale = &locale)).await?;
+        },
+        Some(torrent_data) => {
+            match prowlarr.download(torrent_data.indexer_id, torrent_data.guid).await {
                 Ok(response) => {
                     if response.status().is_success() {
-                        bot.send_message(msg.chat.id, t!("sent_to_download", locale = &locale))
+                        bot.send_message(msg.chat.id, t!("sent_to_download", locale = &locale)).await?;
                     } else {
                         log::error!("Download response from Prowlarr wasn't successful: {} {}",
                                     response.status(), response.text().await.unwrap_or_default());
-                        bot.send_message(msg.chat.id, t!("could_not_send_to_download", locale = &locale))
+                        bot.send_message(msg.chat.id, t!("could_not_send_to_download", locale = &locale)).await?;
                     }
                 }
-                Err(err) => handle_prowlarr_error(bot, msg, locale, err)
+                Err(err) => {
+                    handle_prowlarr_error(bot, msg, locale, err).await;
+                }
             }
         }
-    }.await
+    }
+    Ok(())
+}
+
+async fn get_link(prowlarr: &Arc<ProwlarrClient>,
+                  torrent_data_store: &Arc<TorrentDataStore>,
+                  bot: &Bot,
+                  msg: &Message,
+                  msg_text: &str,
+                  locale: &String) -> ResponseResult<()> {
+    match torrent_data_store.get(&msg_text[3..]) {
+        None => {
+            bot.send_message(msg.chat.id, t!("link_not_found", locale = &locale)).await?;
+        },
+        Some(torrent_data) => {
+            if torrent_data.magnet_url.is_some() {
+                send_magnet(bot, msg.chat.id, &torrent_data.magnet_url.unwrap()).await?;
+            } else if torrent_data.download_url.is_some() {
+                match prowlarr.get_download_url_content(&torrent_data.download_url.unwrap()).await {
+                    Ok(content) => {
+                        if content.torrent_file.is_some() {
+                            // let filename = msg_text[3..].to_string();
+                            let file = InputFile::memory(content.torrent_file.unwrap())
+                                /*.file_name(&filename)*/;
+                            bot.send_document(msg.chat.id, file).await?;
+                        } else if content.magnet_link.is_some() {
+                            send_magnet(bot, msg.chat.id, &content.magnet_link.unwrap()).await?;
+                        } else {
+                            // log::error!("Download response from Prowlarr wasn't successful: {} {}",
+                            //         content.status(), content.text().await.unwrap_or_default());
+                            bot.send_message(msg.chat.id, t!("could_not_send_to_download", locale = &locale)).await?;
+                        }
+                    }
+                    Err(err) => {
+                        handle_prowlarr_error(bot, msg, locale, err).await;
+                    }
+                }
+            } else {
+                log::warn!("Neither magnet nor download link exist for torrent {}", &torrent_data.guid);
+                bot.send_message(msg.chat.id, t!("link_not_found", locale = &locale)).await?;
+            }
+        }
+    }
+    Ok(()) // todo is if ok to return Ok?
+}
+
+fn send_magnet(bot: &Bot, chat_id: ChatId, link: &str) -> JsonRequest<SendMessage> {
+    bot.send_message(chat_id, format!("```\n{}\n```", link))
+        .parse_mode(ParseMode::Markdown)
 }

@@ -32,6 +32,6 @@ impl<V: Clone> UuidMapper<V> {
     }
 
     pub fn get(&self, bot_uuid: &str) -> Option<V> {
-        self.map.get(bot_uuid).map(|e| e.value().clone())
+        self.map.get(bot_uuid).map(|e| e.value().clone()) // todo simplify: use entry()?
     }
 }

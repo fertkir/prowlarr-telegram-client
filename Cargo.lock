@@ -1144,6 +1144,7 @@ name = "prowlarr-telegram-client"
 version = "0.1.0"
 dependencies = [
  "byte-unit",
+ "bytes",
  "chrono",
  "dashmap",
  "env_logger",

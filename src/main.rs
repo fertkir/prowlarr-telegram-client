@@ -8,13 +8,13 @@ use teloxide::update_listeners::webhooks;
 
 use prowlarr::ProwlarrClient;
 
-use crate::prowlarr::DownloadParams;
-use crate::uuid_mapper::UuidMapper;
+use crate::torrent_data::TorrentDataStore;
 
 mod prowlarr;
 mod uuid_mapper;
 mod message_handling;
 mod util;
+mod torrent_data;
 
 i18n!("locales", fallback = "en");
 
@@ -40,7 +40,7 @@ async fn main() {
     let mut dispatcher = Dispatcher::builder(bot, handler)
         .dependencies(dptree::deps![
             Arc::new(ProwlarrClient::from_env()),
-            Arc::new(UuidMapper::<DownloadParams>::new()),
+            Arc::new(TorrentDataStore::new()),
             get_allowed_users()])
         .enable_ctrlc_handler()
         .build();

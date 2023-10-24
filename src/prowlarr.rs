@@ -1,6 +1,7 @@
+use bytes::Bytes;
 use chrono::{DateTime, Utc};
 use reqwest::{Client, Response};
-use reqwest::header::CONTENT_TYPE;
+use reqwest::header::{CONTENT_TYPE, LOCATION};
 use serde::{Deserialize, Serialize};
 
 use crate::util;
@@ -27,11 +28,16 @@ pub struct SearchResult {
     pub grabs: Option<u32>,
 }
 
-#[derive(Serialize, Clone)]
+pub struct DownloadUrlContent {
+    pub magnet_link: Option<String>,
+    pub torrent_file: Option<Bytes>
+}
+
+#[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DownloadParams {
-    pub guid: String,
-    pub indexer_id: u8,
+struct DownloadParams {
+    guid: String,
+    indexer_id: u8,
 }
 
 impl ProwlarrClient {
@@ -52,11 +58,27 @@ impl ProwlarrClient {
             .await
     }
 
-    pub async fn download(&self, params: &DownloadParams) -> reqwest::Result<Response> {
+    pub async fn download(&self, indexer_id: u8, guid: String) -> reqwest::Result<Response> {
         self.client.post(format!("{}/api/v1/search?apikey={}", self.base_url, self.api_key))
             .header(CONTENT_TYPE, "application/json")
-            .json(params)
+            .json(&DownloadParams{ guid, indexer_id })
             .send()
             .await
+    }
+
+    pub async fn get_download_url_content(&self, download_url: &str) -> reqwest::Result<DownloadUrlContent> {
+        // todo replace baseUrl
+        let response = self.client.get(download_url)
+            .send()
+            .await?;
+        if response.status().is_redirection() {
+            // todo handle unwraps below:
+            let magnet = response.headers().get(LOCATION).unwrap().to_str().unwrap();
+            Ok(DownloadUrlContent { magnet_link: Some(magnet.to_string()), torrent_file: None })
+        } else if response.status().is_success() {
+            Ok(DownloadUrlContent { magnet_link: None, torrent_file: Some(response.bytes().await.unwrap()) })
+        } else {
+            panic!("error") // todo handle
+        }
     }
 }
