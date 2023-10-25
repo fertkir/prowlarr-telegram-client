@@ -50,14 +50,12 @@ async fn main() {
 }
 
 fn get_allowed_users() -> Vec<u64> {
-    let allowed_users = std::env::var("ALLOWED_USERS").unwrap_or_default();
-    if allowed_users.is_empty() {
-        vec![]
-    } else {
-        allowed_users.split(",")
-            .map(|user| user.parse::<u64>()
-                .unwrap_or_else(|_| panic!("ALLOWED_USERS list must be a comma-separated \
+    std::env::var("ALLOWED_USERS")
+        .unwrap_or_default()
+        .split(",")
+        .filter(|user| !user.is_empty())
+        .map(|user| user.parse::<u64>()
+            .unwrap_or_else(|_| panic!("ALLOWED_USERS list must be a comma-separated \
                 string of integers. Value \"{user}\" is unexpected")))
-            .collect()
-    }
+        .collect()
 }

@@ -10,12 +10,14 @@ pub struct UuidMapper<V: Clone> {
     sequence: AtomicU32
 }
 
+const UUID_RANDOM_PART_LENGTH: usize = 6;
+
 impl<V: Clone> UuidMapper<V> {
     pub fn new() -> UuidMapper<V> {
         UuidMapper {
             session_key: rand::thread_rng()
                 .sample_iter(&Alphanumeric)
-                .take(6)
+                .take(UUID_RANDOM_PART_LENGTH)
                 .map(char::from)
                 .collect::<String>(),
             map: DashMap::new(),
