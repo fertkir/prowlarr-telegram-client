@@ -66,7 +66,7 @@ impl ProwlarrClient {
             .await
     }
 
-    pub async fn get_download_url_content(&self, download_url: &str) -> reqwest::Result<DownloadUrlContent> {
+    pub async fn get_download_url_content(&self, download_url: &str) -> reqwest::Result<DownloadUrlContent> { // todo should it return Result<DownloadUrlContent, &'static str> instead?
         // todo replace baseUrl
         let response = self.client.get(download_url)
             .send()

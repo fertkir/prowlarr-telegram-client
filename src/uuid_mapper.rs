@@ -23,7 +23,7 @@ impl<V: Clone> UuidMapper<V> {
         }
     }
 
-    pub fn put(&self, value: V) -> String { // todo what's the difference between self and &self?
+    pub fn put(&self, value: V) -> String {
         let bot_uuid = format!(
             "{}{}", self.session_key,  self.sequence.fetch_add(1, Ordering::SeqCst));
         self.map.insert(bot_uuid.clone(), value);
