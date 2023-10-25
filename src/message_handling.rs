@@ -1,7 +1,7 @@
+use std::fmt::Display;
 use std::sync::Arc;
 
 use byte_unit::Byte;
-use reqwest::Error;
 use teloxide::Bot;
 use teloxide::payloads::{SendMessage, SendMessageSetters};
 use teloxide::prelude::{Message, Requester, ResponseResult};
@@ -105,7 +105,7 @@ fn create_response(search_result: &SearchResult, bot_uuid: &str, locale: &str) -
             &t!("get_link", locale = &locale), bot_uuid)
 }
 
-async fn handle_prowlarr_error(bot: &Bot, msg: &Message, locale: &String, err: Error) {
+async fn handle_prowlarr_error(bot: &Bot, msg: &Message, locale: &String, err: impl Display) {
     log::error!("Error when searching in Prowlarr: {}", err);
     bot.send_message(msg.chat.id, t!("prowlarr_error", locale = &locale)).await;
 }

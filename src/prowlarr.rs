@@ -66,19 +66,26 @@ impl ProwlarrClient {
             .await
     }
 
-    pub async fn get_download_url_content(&self, download_url: &str) -> reqwest::Result<DownloadUrlContent> { // todo should it return Result<DownloadUrlContent, &'static str> instead?
+    pub async fn get_download_url_content(&self, download_url: &str) -> Result<DownloadUrlContent, String> {
         // todo replace baseUrl
         let response = self.client.get(download_url)
             .send()
-            .await?;
+            .await
+            .map_err(|err|err.to_string())?;
         if response.status().is_redirection() {
-            // todo handle unwraps below:
-            let magnet = response.headers().get(LOCATION).unwrap().to_str().unwrap();
-            Ok(DownloadUrlContent { magnet_link: Some(magnet.to_string()), torrent_file: None })
+            let magnet = response.headers().get(LOCATION)
+                .ok_or("Missing expected Location header")?
+                .to_str()
+                .map_err(|err|err.to_string())?
+                .to_string();
+            Ok(DownloadUrlContent { magnet_link: Some(magnet), torrent_file: None })
         } else if response.status().is_success() {
-            Ok(DownloadUrlContent { magnet_link: None, torrent_file: Some(response.bytes().await.unwrap()) })
+            let torrent_file = response.bytes()
+                .await
+                .map_err(|err| err.to_string())?;
+            Ok(DownloadUrlContent { magnet_link: None, torrent_file: Some(torrent_file) })
         } else {
-            panic!("error") // todo handle
+            Err(format!("Unexpected response status code: {}", response.status()))
         }
     }
 }
