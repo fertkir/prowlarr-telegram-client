@@ -35,9 +35,9 @@ pub struct DownloadUrlContent {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct DownloadParams {
-    guid: String,
-    indexer_id: u8,
+struct DownloadParams<'a> {
+    guid: &'a str,
+    indexer_id: &'a u8,
 }
 
 impl ProwlarrClient {
@@ -58,7 +58,7 @@ impl ProwlarrClient {
             .await
     }
 
-    pub async fn download(&self, indexer_id: u8, guid: String) -> reqwest::Result<Response> {
+    pub async fn download(&self, indexer_id: &u8, guid: &str) -> reqwest::Result<Response> {
         self.client.post(format!("{}/api/v1/search?apikey={}", self.base_url, self.api_key))
             .header(CONTENT_TYPE, "application/json")
             .json(&DownloadParams{ guid, indexer_id })

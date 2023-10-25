@@ -121,7 +121,7 @@ async fn download(prowlarr: &Arc<ProwlarrClient>,
             bot.send_message(msg.chat.id, t!("link_not_found", locale = &locale)).await?;
         },
         Some(torrent_data) => {
-            match prowlarr.download(torrent_data.indexer_id, torrent_data.guid).await {
+            match prowlarr.download(&torrent_data.indexer_id, &torrent_data.guid).await {
                 Ok(response) => {
                     if response.status().is_success() {
                         bot.send_message(msg.chat.id, t!("sent_to_download", locale = &locale)).await?;
