@@ -28,9 +28,9 @@ pub struct SearchResult {
     pub grabs: Option<u32>,
 }
 
-pub struct DownloadUrlContent {
-    pub magnet_link: Option<String>,
-    pub torrent_file: Option<Bytes>
+pub enum DownloadUrlContent {
+    MagnetLink(String),
+    TorrentFile(Bytes)
 }
 
 #[derive(Serialize)]
@@ -78,12 +78,12 @@ impl ProwlarrClient {
                 .to_str()
                 .map_err(|err|err.to_string())?
                 .to_string();
-            Ok(DownloadUrlContent { magnet_link: Some(magnet), torrent_file: None }) // todo replace with enum with structure
+            Ok(DownloadUrlContent::MagnetLink(magnet))
         } else if response.status().is_success() {
             let torrent_file = response.bytes()
                 .await
                 .map_err(|err| err.to_string())?;
-            Ok(DownloadUrlContent { magnet_link: None, torrent_file: Some(torrent_file) })
+            Ok(DownloadUrlContent::TorrentFile(torrent_file))
         } else {
             Err(format!("Unexpected response status code: {}", response.status()))
         }

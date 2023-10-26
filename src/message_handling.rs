@@ -10,7 +10,7 @@ use teloxide::types::{ChatId, InputFile, ParseMode};
 use teloxide::utils::markdown::bold;
 use teloxide::utils::markdown::link;
 
-use crate::prowlarr::{ProwlarrClient, SearchResult};
+use crate::prowlarr::{DownloadUrlContent, ProwlarrClient, SearchResult};
 use crate::torrent_data::{TorrentData, TorrentDataStore};
 
 const RESULTS_COUNT: usize = 10;
@@ -162,14 +162,15 @@ async fn get_link(prowlarr: &Arc<ProwlarrClient>,
             } else if torrent_data.download_url.is_some() {
                 match prowlarr.get_download_url_content(&torrent_data.download_url.unwrap()).await {
                     Ok(content) => {
-                        if content.torrent_file.is_some() {
-                            let file = InputFile::memory(content.torrent_file.unwrap())
-                                .file_name(format!("{}.torrent", torrent_uuid));
-                            bot.send_document(msg.chat.id, file).await?;
-                        } else if content.magnet_link.is_some() {
-                            send_magnet(bot, msg.chat.id, &content.magnet_link.unwrap()).await?;
-                        } else {
-                            // todo get rid of this else, it will never happen
+                        match content {
+                            DownloadUrlContent::MagnetLink(link) => {
+                                send_magnet(bot, msg.chat.id, &link).await?;
+                            }
+                            DownloadUrlContent::TorrentFile(torrent_file) => {
+                                let file = InputFile::memory(torrent_file)
+                                    .file_name(format!("{}.torrent", torrent_uuid));
+                                bot.send_document(msg.chat.id, file).await?;
+                            }
                         }
                     }
                     Err(err) => {
