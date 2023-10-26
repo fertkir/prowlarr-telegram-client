@@ -146,7 +146,8 @@ async fn get_link(prowlarr: &Arc<ProwlarrClient>,
                   msg: &Message,
                   msg_text: &str,
                   locale: &String) -> ResponseResult<()> {
-    match torrent_data_store.get(&msg_text[3..]) {
+    let torrent_uuid = &msg_text[3..];
+    match torrent_data_store.get(torrent_uuid) {
         None => {
             bot.send_message(msg.chat.id, t!("link_not_found", locale = &locale)).await?;
         },
@@ -157,9 +158,8 @@ async fn get_link(prowlarr: &Arc<ProwlarrClient>,
                 match prowlarr.get_download_url_content(&torrent_data.download_url.unwrap()).await {
                     Ok(content) => {
                         if content.torrent_file.is_some() {
-                            // let filename = msg_text[3..].to_string();
                             let file = InputFile::memory(content.torrent_file.unwrap())
-                                /*.file_name(&filename)*/;
+                                .file_name(format!("{}.torrent", torrent_uuid));
                             bot.send_document(msg.chat.id, file).await?;
                         } else if content.magnet_link.is_some() {
                             send_magnet(bot, msg.chat.id, &content.magnet_link.unwrap()).await?;
