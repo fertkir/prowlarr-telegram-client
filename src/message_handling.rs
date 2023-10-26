@@ -82,7 +82,9 @@ async fn search(prowlarr: &Arc<ProwlarrClient>,
                 }
             }
         }
-        Err(err) => handle_prowlarr_error(bot, msg, locale, err).await
+        Err(err) => {
+            handle_prowlarr_error(bot, msg, locale, err).await?;
+        }
     }
     Ok(())
 }
@@ -105,9 +107,12 @@ fn create_response(search_result: &SearchResult, bot_uuid: &str, locale: &str) -
             &t!("get_link", locale = &locale), bot_uuid)
 }
 
-async fn handle_prowlarr_error(bot: &Bot, msg: &Message, locale: &String, err: impl Display) {
-    log::error!("Error when searching in Prowlarr: {}", err);
-    bot.send_message(msg.chat.id, t!("prowlarr_error", locale = &locale)).await;
+async fn handle_prowlarr_error(bot: &Bot,
+                               msg: &Message,
+                               locale: &String,
+                               err: impl Display) -> ResponseResult<Message> {
+    log::error!("Error when interacting with Prowlarr: {}", err);
+    bot.send_message(msg.chat.id, t!("prowlarr_error", locale = &locale)).await
 }
 
 async fn download(prowlarr: &Arc<ProwlarrClient>,
@@ -132,7 +137,7 @@ async fn download(prowlarr: &Arc<ProwlarrClient>,
                     }
                 }
                 Err(err) => {
-                    handle_prowlarr_error(bot, msg, locale, err).await;
+                    handle_prowlarr_error(bot, msg, locale, err).await?;
                 }
             }
         }
@@ -164,13 +169,11 @@ async fn get_link(prowlarr: &Arc<ProwlarrClient>,
                         } else if content.magnet_link.is_some() {
                             send_magnet(bot, msg.chat.id, &content.magnet_link.unwrap()).await?;
                         } else {
-                            // log::error!("Download response from Prowlarr wasn't successful: {} {}",
-                            //         content.status(), content.text().await.unwrap_or_default());
-                            bot.send_message(msg.chat.id, t!("could_not_send_to_download", locale = &locale)).await?;
+                            // todo get rid of this else, it will never happen
                         }
                     }
                     Err(err) => {
-                        handle_prowlarr_error(bot, msg, locale, err).await;
+                        handle_prowlarr_error(bot, msg, locale, err).await?;
                     }
                 }
             } else {
@@ -179,7 +182,7 @@ async fn get_link(prowlarr: &Arc<ProwlarrClient>,
             }
         }
     }
-    Ok(()) // todo is if ok to return Ok?
+    Ok(())
 }
 
 fn send_magnet(bot: &Bot, chat_id: ChatId, link: &str) -> JsonRequest<SendMessage> {

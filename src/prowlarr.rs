@@ -78,7 +78,7 @@ impl ProwlarrClient {
                 .to_str()
                 .map_err(|err|err.to_string())?
                 .to_string();
-            Ok(DownloadUrlContent { magnet_link: Some(magnet), torrent_file: None })
+            Ok(DownloadUrlContent { magnet_link: Some(magnet), torrent_file: None }) // todo replace with enum with structure
         } else if response.status().is_success() {
             let torrent_file = response.bytes()
                 .await

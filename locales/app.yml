@@ -23,12 +23,9 @@ registered:
 download:
   en: Download
   ru: Скачать
-get_torrent_file:
-  en: Get .torrent file
-  ru: Получить .torrent файл
 get_link:
-  en: Get link
-  ru: Получить ссылку
+  en: Get link/torrent-file
+  ru: Получить ссылку/torrent-файл
 no_results:
   en: No results for "%{request}"
   ru: Результатов по запросу "%{request}" не найдено
