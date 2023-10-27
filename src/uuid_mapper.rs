@@ -11,6 +11,7 @@ pub struct UuidMapper<V: Clone> {
 }
 
 const UUID_RANDOM_PART_LENGTH: usize = 6;
+const MAX_CACHE_SIZE: u32 = 10_000;
 
 impl<V: Clone> UuidMapper<V> {
     pub fn new() -> UuidMapper<V> {
@@ -26,14 +27,16 @@ impl<V: Clone> UuidMapper<V> {
     }
 
     pub fn put(&self, value: V) -> String {
-        let bot_uuid = format!(
-            "{}{}", self.session_key,  self.sequence.fetch_add(1, Ordering::SeqCst));
+        let seq = self.sequence.fetch_add(1, Ordering::SeqCst);
+        let bot_uuid = format!("{}{}", self.session_key, seq);
+        if seq > MAX_CACHE_SIZE {
+            self.map.remove(&format!("{}{}", self.session_key, seq - MAX_CACHE_SIZE));
+        }
         self.map.insert(bot_uuid.clone(), value);
         bot_uuid
-        // todo remove old keys to prevent memory leaks
     }
 
     pub fn get(&self, bot_uuid: &str) -> Option<V> {
-        self.map.get(bot_uuid).map(|e| e.value().clone()) // todo simplify: use entry()?
+        self.map.get(bot_uuid).map(|e| e.value().clone())
     }
 }
