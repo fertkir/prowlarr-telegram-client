@@ -54,7 +54,7 @@ async fn search(prowlarr: &Arc<ProwlarrClient>,
                 msg: &Message,
                 msg_text: &str,
                 locale: &String) -> ResponseResult<()> {
-    log::info!("Received message \"{}\" from user {}", msg_text, msg.chat.id);
+    log::info!("userId {} | Received search request \"{}\"", msg.chat.id, msg_text);
     match prowlarr.search(msg_text).await {
         Ok(results) => {
             let response = sorted_by_seeders(results)
@@ -73,12 +73,15 @@ async fn search(prowlarr: &Arc<ProwlarrClient>,
             match response {
                 None => {
                     bot.send_message(msg.chat.id, t!("no_results", locale = &locale, request = msg_text)).await?;
+                    log::info!("userId {} | Sent \"No results\" response", msg.chat.id);
                 }
                 Some(response) => {
+                    let response_digest = to_digest(&response);
                     bot.send_message(msg.chat.id, response)
                         .parse_mode(ParseMode::Markdown)
                         .disable_web_page_preview(true)
                         .await?;
+                    log::info!("userId {} | Sent search response \"{}\"", msg.chat.id, response_digest);
                 }
             }
         }
@@ -105,6 +108,14 @@ fn create_response(search_result: &SearchResult, bot_uuid: &str, locale: &str) -
             Byte::from_bytes(search_result.size).get_appropriate_unit(false),
             bold(&t!("download", locale = &locale)), bot_uuid,
             &t!("get_link", locale = &locale), bot_uuid)
+}
+
+fn to_digest(str: &str) -> String {
+    str.char_indices()
+        .map(|(i, _)| i)
+        .nth(100)
+        .map(|end|str[0..end].to_string())
+        .unwrap_or(str.to_string())
 }
 
 async fn handle_prowlarr_error(bot: &Bot,
