@@ -3,12 +3,13 @@ use chrono::{DateTime, Utc};
 use reqwest::{Client, Response};
 use reqwest::header::{CONTENT_TYPE, LOCATION};
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::util;
 
 pub struct ProwlarrClient {
     api_key: String,
-    base_url: String,
+    base_url: Url,
     client: Client,
 }
 
@@ -40,17 +41,27 @@ struct DownloadParams<'a> {
     indexer_id: &'a u8,
 }
 
+const PROWLARR_API_KEY_ENV: &'static str = "PROWLARR_API_KEY";
+const PROWLARR_BASE_URL_ENV: &'static str = "PROWLARR_BASE_URL";
+
 impl ProwlarrClient {
     pub fn from_env() -> ProwlarrClient {
         ProwlarrClient {
-            api_key: util::get_env("PROWLARR_API_KEY"),
-            base_url: util::get_env("PROWLARR_BASE_URL"),
+            api_key: util::get_env(PROWLARR_API_KEY_ENV),
+            base_url: ProwlarrClient::parse_base_url(),
             client: Client::new(),
         }
     }
 
+    fn parse_base_url() -> Url {
+        let url_string = util::get_env(PROWLARR_BASE_URL_ENV);
+        Url::parse(&url_string)
+            .unwrap_or_else(|err|
+                panic!("Could not parse {}: {}: \"{}\"", PROWLARR_BASE_URL_ENV, err, url_string))
+    }
+
     pub async fn search(&self, query: &str) -> reqwest::Result<Vec<SearchResult>> {
-        self.client.get(format!("{}/api/v1/search?apikey={}&query={}",
+        self.client.get(format!("{}api/v1/search?apikey={}&query={}",
                                 self.base_url, self.api_key, query))
             .send()
             .await?
@@ -59,7 +70,7 @@ impl ProwlarrClient {
     }
 
     pub async fn download(&self, indexer_id: &u8, guid: &str) -> reqwest::Result<Response> {
-        self.client.post(format!("{}/api/v1/search?apikey={}", self.base_url, self.api_key))
+        self.client.post(format!("{}api/v1/search?apikey={}", self.base_url, self.api_key))
             .header(CONTENT_TYPE, "application/json")
             .json(&DownloadParams{ guid, indexer_id })
             .send()
@@ -67,8 +78,7 @@ impl ProwlarrClient {
     }
 
     pub async fn get_download_url_content(&self, download_url: &str) -> Result<DownloadUrlContent, String> {
-        // todo replace baseUrl
-        let response = self.client.get(download_url)
+        let response = self.client.get(self.replace_base_url(download_url)?)
             .send()
             .await
             .map_err(|err|err.to_string())?;
@@ -87,5 +97,12 @@ impl ProwlarrClient {
         } else {
             Err(format!("Unexpected response status code: {}", response.status()))
         }
+    }
+
+    fn replace_base_url(&self, url: &str) -> Result<String, String> {
+        let mut url = Url::parse(url).map_err(|err|err.to_string())?;
+        url.set_host(self.base_url.host_str()).unwrap();
+        url.set_port(self.base_url.port()).unwrap();
+        Ok(url.to_string())
     }
 }

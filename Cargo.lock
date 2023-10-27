@@ -1155,6 +1155,7 @@ dependencies = [
  "serde",
  "teloxide",
  "tokio",
+ "url",
 ]
 
 [[package]]
