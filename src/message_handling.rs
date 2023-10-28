@@ -122,7 +122,7 @@ async fn handle_prowlarr_error(bot: &Bot,
                                msg: &Message,
                                locale: &String,
                                err: impl Display) -> ResponseResult<Message> {
-    log::error!("Error when interacting with Prowlarr: {}", err);
+    log::error!("userId {} | Error when interacting with Prowlarr: {}", msg.chat.id, err);
     bot.send_message(msg.chat.id, t!("prowlarr_error", locale = &locale)).await
 }
 
@@ -132,8 +132,10 @@ async fn download(prowlarr: &Arc<ProwlarrClient>,
                   msg: &Message,
                   msg_text: &str,
                   locale: &String) -> ResponseResult<()> {
+    log::info!("userId {} | Received download request for {}", msg.chat.id, msg_text);
     match torrent_data_store.get(&msg_text[3..]) {
         None => {
+            log::warn!("userId {} | Link {} expired", msg.chat.id, msg_text);
             bot.send_message(msg.chat.id, t!("link_not_found", locale = &locale)).await?;
         },
         Some(torrent_data) => {
@@ -141,9 +143,10 @@ async fn download(prowlarr: &Arc<ProwlarrClient>,
                 Ok(response) => {
                     if response.status().is_success() {
                         bot.send_message(msg.chat.id, t!("sent_to_download", locale = &locale)).await?;
+                        log::info!("userId {} | Sent {} for downloading", msg.chat.id, torrent_data);
                     } else {
-                        log::error!("Download response from Prowlarr wasn't successful: {} {}",
-                                    response.status(), response.text().await.unwrap_or_default());
+                        log::error!("userId {} | Download response from Prowlarr wasn't successful: {} {}",
+                            msg.chat.id, response.status(), response.text().await.unwrap_or_default());
                         bot.send_message(msg.chat.id, t!("could_not_send_to_download", locale = &locale)).await?;
                     }
                 }
@@ -162,25 +165,30 @@ async fn get_link(prowlarr: &Arc<ProwlarrClient>,
                   msg: &Message,
                   msg_text: &str,
                   locale: &String) -> ResponseResult<()> {
+    log::info!("userId {} | Received get link request for {}", msg.chat.id, msg_text);
     let torrent_uuid = &msg_text[3..];
     match torrent_data_store.get(torrent_uuid) {
         None => {
+            log::warn!("userId {} | Link {} expired", msg.chat.id, msg_text);
             bot.send_message(msg.chat.id, t!("link_not_found", locale = &locale)).await?;
         },
         Some(torrent_data) => {
             if torrent_data.magnet_url.is_some() {
-                send_magnet(bot, msg.chat.id, &torrent_data.magnet_url.unwrap()).await?;
+                send_magnet(bot, msg.chat.id, &torrent_data.magnet_url.as_ref().unwrap()).await?;
+                log::info!("userId {} | Sent magnet link for {} ", msg.chat.id, &torrent_data);
             } else if torrent_data.download_url.is_some() {
-                match prowlarr.get_download_url_content(&torrent_data.download_url.unwrap()).await {
+                match prowlarr.get_download_url_content(&torrent_data.download_url.as_ref().unwrap()).await {
                     Ok(content) => {
                         match content {
                             DownloadUrlContent::MagnetLink(link) => {
                                 send_magnet(bot, msg.chat.id, &link).await?;
+                                log::info!("userId {} | Sent magnet link for {} ", msg.chat.id, &torrent_data);
                             }
                             DownloadUrlContent::TorrentFile(torrent_file) => {
                                 let file = InputFile::memory(torrent_file)
                                     .file_name(format!("{}.torrent", torrent_uuid));
                                 bot.send_document(msg.chat.id, file).await?;
+                                log::info!("userId {} | Sent .torrent file for {} ", msg.chat.id, &torrent_data);
                             }
                         }
                     }
@@ -189,7 +197,7 @@ async fn get_link(prowlarr: &Arc<ProwlarrClient>,
                     }
                 }
             } else {
-                log::warn!("Neither magnet nor download link exist for torrent {}", &torrent_data.guid);
+                log::warn!("userId {} | Neither magnet nor download link exist for torrent {}", msg.chat.id, torrent_data);
                 bot.send_message(msg.chat.id, t!("link_not_found", locale = &locale)).await?;
             }
         }
