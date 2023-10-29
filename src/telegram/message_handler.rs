@@ -149,7 +149,7 @@ async fn download(prowlarr: &Arc<ProwlarrClient>,
                         log::info!("userId {} | Sent {} for downloading", msg.chat.id, torrent_data);
                         match get_torrent_hash(&torrent_data, prowlarr).await {
                             Ok(hash) => {
-                                downloads_tracker.add(hash, msg.chat.id);
+                                downloads_tracker.add(hash, msg.chat.id, locale.clone());
                             }
                             Err(err) => {
                                 log::error!("userId {} | {}", msg.chat.id, err);
