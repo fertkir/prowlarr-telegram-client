@@ -52,7 +52,7 @@ async fn main() {
 fn get_allowed_users() -> Vec<u64> {
     std::env::var("ALLOWED_USERS")
         .unwrap_or_default()
-        .split(",")
+        .split(',')
         .filter(|user| !user.is_empty())
         .map(|user| user.parse::<u64>()
             .unwrap_or_else(|_| panic!("ALLOWED_USERS list must be a comma-separated \

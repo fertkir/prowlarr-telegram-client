@@ -41,8 +41,8 @@ struct DownloadParams<'a> {
     indexer_id: &'a u8,
 }
 
-const PROWLARR_API_KEY_ENV: &'static str = "PROWLARR_API_KEY";
-const PROWLARR_BASE_URL_ENV: &'static str = "PROWLARR_BASE_URL";
+const PROWLARR_API_KEY_ENV: &str = "PROWLARR_API_KEY";
+const PROWLARR_BASE_URL_ENV: &str = "PROWLARR_BASE_URL";
 
 impl ProwlarrClient {
     pub fn from_env() -> ProwlarrClient {

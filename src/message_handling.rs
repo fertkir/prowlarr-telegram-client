@@ -23,12 +23,12 @@ pub async fn message_handler(prowlarr: Arc<ProwlarrClient>,
     if allowed_users.is_empty() || allowed_users.contains(&get_user_id(&msg)) {
         if let Some(msg_text) = msg.text() {
             let locale = get_locale(&msg);
-            if !msg_text.starts_with("/") {
+            if !msg_text.starts_with('/') {
                 search(&prowlarr, &torrent_data_store, &bot, &msg, msg_text, &locale).await?;
             } else if msg_text.starts_with("/d_") {
-                download(&prowlarr, &torrent_data_store, &bot, &msg, &msg_text, &locale).await?;
+                download(&prowlarr, &torrent_data_store, &bot, &msg, msg_text, &locale).await?;
             } else if msg_text.starts_with("/m_") {
-                get_link(&prowlarr, &torrent_data_store, &bot, &msg, &msg_text, &locale).await?;
+                get_link(&prowlarr, &torrent_data_store, &bot, &msg, msg_text, &locale).await?;
             } else {
                 bot.send_message(msg.chat.id, t!("help", locale = &locale)).await?;
             }
@@ -43,9 +43,8 @@ fn get_user_id(msg: &Message) -> u64 {
 
 fn get_locale(msg: &Message) -> String {
     msg.from()
-        .map(|u| u.language_code.clone())
-        .flatten()
-        .unwrap_or(String::from("en"))
+        .and_then(|u| u.language_code.clone())
+        .unwrap_or_else(||String::from("en"))
 }
 
 async fn search(prowlarr: &Arc<ProwlarrClient>,
@@ -67,7 +66,7 @@ async fn search(prowlarr: &Arc<ProwlarrClient>,
                         guid: search_result.guid.clone(),
                         magnet_url: search_result.magnet_url.clone(),
                     });
-                    create_response(&search_result, &bot_uuid, &locale)
+                    create_response(search_result, bot_uuid, locale)
                 })
                 .reduce(|acc, e| acc + &e);
             match response {
@@ -100,7 +99,7 @@ fn sorted_by_seeders(mut results: Vec<SearchResult>) -> Vec<SearchResult> {
 fn create_response(search_result: &SearchResult, bot_uuid: &str, locale: &str) -> String {
     let downloads = search_result.grabs
         .map(|grabs| format!("{} {}", t!("downloaded", locale = &locale), grabs))
-        .unwrap_or_else(String::new);
+        .unwrap_or_default();
     format!("{}\n{}\nS {} | L {} | {} | {} {} | {} {}\n{}: /d\\_{}\n{}: /m\\_{}\n\n",
             search_result.title, link(&search_result.info_url, &t!("description", locale = &locale)),
             search_result.seeders, search_result.leechers, downloads, &t!("registered", locale = &locale),
@@ -174,10 +173,10 @@ async fn get_link(prowlarr: &Arc<ProwlarrClient>,
         },
         Some(torrent_data) => {
             if torrent_data.magnet_url.is_some() {
-                send_magnet(bot, msg.chat.id, &torrent_data.magnet_url.as_ref().unwrap()).await?;
+                send_magnet(bot, msg.chat.id, torrent_data.magnet_url.as_ref().unwrap()).await?;
                 log::info!("userId {} | Sent magnet link for {} ", msg.chat.id, &torrent_data);
             } else if torrent_data.download_url.is_some() {
-                match prowlarr.get_download_url_content(&torrent_data.download_url.as_ref().unwrap()).await {
+                match prowlarr.get_download_url_content(torrent_data.download_url.as_ref().unwrap()).await {
                     Ok(content) => {
                         match content {
                             DownloadUrlContent::MagnetLink(link) => {
