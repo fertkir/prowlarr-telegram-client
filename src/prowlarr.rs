@@ -5,8 +5,6 @@ use reqwest::header::{CONTENT_TYPE, LOCATION};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::util;
-
 pub struct ProwlarrClient {
     api_key: String,
     base_url: Url,
@@ -47,14 +45,14 @@ const PROWLARR_BASE_URL_ENV: &str = "PROWLARR_BASE_URL";
 impl ProwlarrClient {
     pub fn from_env() -> ProwlarrClient {
         ProwlarrClient {
-            api_key: util::get_env(PROWLARR_API_KEY_ENV),
+            api_key: get_env(PROWLARR_API_KEY_ENV),
             base_url: ProwlarrClient::parse_base_url(),
             client: Client::new(),
         }
     }
 
     fn parse_base_url() -> Url {
-        let url_string = util::get_env(PROWLARR_BASE_URL_ENV);
+        let url_string = get_env(PROWLARR_BASE_URL_ENV);
         Url::parse(&url_string)
             .unwrap_or_else(|err|
                 panic!("Could not parse {}: {}: \"{}\"", PROWLARR_BASE_URL_ENV, err, url_string))
@@ -105,4 +103,8 @@ impl ProwlarrClient {
         url.set_port(self.base_url.port()).unwrap();
         Ok(url.to_string())
     }
+}
+
+fn get_env(env: &str) -> String {
+    std::env::var(env).unwrap_or_else(|_| panic!("Cannot get the {env} env variable"))
 }
