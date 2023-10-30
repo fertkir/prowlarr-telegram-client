@@ -23,9 +23,15 @@ pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
             .and(warp::any().map(move || downloads_tracker.clone()))
             .and(warp::any().map(move || bot.clone()))
             .then(completion);
-        warp::serve(filter)
-            .run(([127, 0, 0, 1], port.parse().unwrap()))
-            .await;
+        let (addr, fut) = warp::serve(filter)
+            .bind_with_graceful_shutdown(([127, 0, 0, 1], port.parse().unwrap()), async move {
+                tokio::signal::ctrl_c()
+                    .await
+                    .expect("failed to listen to shutdown signal");
+            });
+        log::info!("Server::run; addr={}", addr);
+        log::info!("listening on http://{}", addr);
+        fut.await;
     }
 }
 
