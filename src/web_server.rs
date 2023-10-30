@@ -3,6 +3,7 @@ use std::sync::Arc;
 use serde::Deserialize;
 use teloxide::Bot;
 use teloxide::prelude::Requester;
+use tokio::task;
 use warp::Filter;
 use warp::reply::WithStatus;
 
@@ -33,12 +34,18 @@ async fn completion(request: CompletionRequest,
                     bot: Bot) -> WithStatus<String> {
     log::info!("{:?}", request); // todo use something normal instead of Debug trait
     for user in downloads_tracker.remove(request.hash).iter() {
-        match bot.send_message(user.chat_id, t!("download_complete", locale = &user.locale, name = request.name)).await { // todo send movie name
-            Ok(_) => {}
-            Err(err) => {
-                log::error!("error: {}", err) // todo change error message
-            }
-        };
+        let bot = bot.clone();
+        let download_name = request.name.clone();
+        let chat_id = user.chat_id.clone();
+        let locale = user.locale.clone();
+        task::spawn(async move {
+            match bot.send_message(chat_id, t!("download_complete", locale = &locale, name = download_name)).await {
+                Ok(_) => {}
+                Err(err) => {
+                    log::error!("error: {}", err) // todo change error message
+                }
+            };
+        });
     }
-    warp::reply::with_status(String::new(), warp::http::StatusCode::ACCEPTED) // todo return result before processing
+    warp::reply::with_status(String::new(), warp::http::StatusCode::ACCEPTED)
 }
