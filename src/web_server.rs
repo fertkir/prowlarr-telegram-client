@@ -17,7 +17,7 @@ struct CompletionRequest {
 
 pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
     if let Ok(port) = std::env::var("COMPLETE_PORT") {
-        let filter = warp::post()
+        let filter = warp::put()
             .and(warp::path("complete"))
             .and(warp::body::json())
             .and(warp::any().map(move || downloads_tracker.clone()))
