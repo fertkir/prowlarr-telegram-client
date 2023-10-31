@@ -4,7 +4,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/${{ github.actor }}/prowlarr-tg-client-transmission
+  IMAGE_NAME: ${{ github.actor }}/prowlarr-tg-client-transmission
 
 jobs:
   build:
