@@ -7,7 +7,7 @@ if [[ -n "$PROWLARR_CLIENT_SERVER_URL" ]]; then
 
     echo '#!/bin/sh' > /config/done-script
     echo 'set -x' >> /config/done-script
-    echo "curl -X PUT '$PROWLARR_CLIENT_SERVER_URL/complete' -H 'Content-Type: application/json' -d \"{\\\"hash\\\":\\\"\$TR_TORRENT_HASH\\\",\\\"name\\\":\\\"\${TR_TORRENT_NAME//\"/\\\"}\\\"}\"" >> /config/done-script
+    echo "curl -X PUT '$PROWLARR_CLIENT_SERVER_URL/complete' -H 'Content-Type: application/json' -d \"{\\\"hash\\\":\\\"\$TR_TORRENT_HASH\\\",\\\"name\\\":\\\"\${TR_TORRENT_NAME//\\\"/\\\\\\\"}\\\"}\"" >> /config/done-script
     chmod +x /config/done-script
     lsiown abc:abc /config/done-script
 fi
