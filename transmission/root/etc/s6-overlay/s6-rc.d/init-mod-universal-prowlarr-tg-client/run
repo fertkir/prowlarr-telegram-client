@@ -10,6 +10,7 @@ if [[ -n "$PROWLARR_CLIENT_SERVER_URL" ]]; then
     chmod +x /config/done-script
     lsiown abc:abc /config/done-script
 fi
+# todo add else clause (reset the done-script settings)
 
 # Customize downloads directories
 if [[ -n "$DOWNLOAD_DIR" ]]; then
