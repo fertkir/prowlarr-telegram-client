@@ -1,9 +1,6 @@
 #!/usr/bin/with-contenv bash
 
 # Creating script to notify tg-torrent-bot that a download has been complete
-mkdir -p /completesa
-lsiown abc:abc /completes
-
 sed -i '/script-torrent-done-enabled/c\    "script-torrent-done-enabled": true,' /config/settings.json
 sed -i '/script-torrent-done-filename/c\    "script-torrent-done-filename": "/config/done-script",' /config/settings.json
 
