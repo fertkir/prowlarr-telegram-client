@@ -14,7 +14,7 @@ log = "0.4.20"
 env_logger = "0.10.0"
 rust-i18n = "2.2.1"
 reqwest = { version = "0.11.22", features = ["stream"]}
-serde = { version = "1.0.189", features = ["derive"] }
+serde = { version = "1.0.190", features = ["derive"] }
 chrono = {  version = "0.4.31", features = ["serde"] }
 byte-unit = "4.0.19"
 dashmap = "5.5.3"
