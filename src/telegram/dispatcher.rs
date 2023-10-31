@@ -26,7 +26,7 @@ pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
         .enable_ctrlc_handler()
         .build();
     if let (Ok(port), Ok(url)) = (std::env::var("WEBHOOK_PORT"), std::env::var("WEBHOOK_URL")) {
-        let addr = ([127, 0, 0, 1], port.parse().unwrap()).into();
+        let addr = ([0, 0, 0, 0], port.parse().unwrap()).into();
         let webhook_listener = webhooks::axum(bot, webhooks::Options::new(addr, reqwest::Url::parse(&url).unwrap()))
             .await
             .unwrap();
