@@ -1,0 +1,26 @@
+#!/usr/bin/with-contenv bash
+
+# Creating script to notify tg-torrent-bot that a download has been complete
+mkdir -p /completesa
+lsiown abc:abc /completes
+
+sed -i '/script-torrent-done-enabled/c\    "script-torrent-done-enabled": true,' /config/settings.json
+sed -i '/script-torrent-done-filename/c\    "script-torrent-done-filename": "/config/done-script",' /config/settings.json
+
+echo '#!/bin/sh' > /config/done-script
+echo "curl -X PUT '$PROWLARR_CLIENT_SERVER_URL/complete' -H 'Content-Type: application/json' -d '{\"hash\":\"$TR_TORRENT_HASH\",\"name\":\"${TR_TORRENT_NAME//\"/\\\"}\"}'" >> /config/done-script
+chmod +x /config/done-script
+lsiown abc:abc /config/done-script
+
+# Customize downloads directories
+if [[ -n "$DOWNLOAD_DIR" ]]; then
+    rm -rf /downloads/complete
+    sed -i "/download-dir/c\    \"download-dir\": \"$DOWNLOAD_DIR\"," /config/settings.json
+    mkdir -p "$DOWNLOAD_DIR"
+    lsiown abc:abc "$DOWNLOAD_DIR"
+fi
+
+if [[ -n "$INCOMPLETE_DIR_ENABLED" ]]; then
+    rm -rf /downloads/incomplete
+    sed -i "/incomplete-dir-enabled/c\    \"incomplete-dir-enabled\": \"$INCOMPLETE_DIR_ENABLED\"," /config/settings.json
+fi
