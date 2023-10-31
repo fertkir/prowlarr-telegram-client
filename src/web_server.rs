@@ -24,7 +24,7 @@ pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
             .and(warp::any().map(move || bot.clone()))
             .then(completion);
         let (addr, fut) = warp::serve(filter)
-            .bind_with_graceful_shutdown(([0, 0, 0, 0], port.parse().unwrap()), async move {
+            .bind_with_graceful_shutdown(([0, 0, 0, 0], port.parse().unwrap()), async move { // todo parameterize bind port
                 tokio::signal::ctrl_c()
                     .await
                     .expect("failed to listen to shutdown signal");
