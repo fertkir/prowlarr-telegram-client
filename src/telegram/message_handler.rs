@@ -183,7 +183,7 @@ async fn get_torrent_hash(torrent_data: &TorrentData,
                 match content {
                     DownloadUrlContent::MagnetLink(link) =>
                         Ok(MagnetLink::new(&link)
-                            .map_err(|err| err.to_string())?
+                            .map_err(|err| err.to_string())? // todo add info about where an error occurred
                             .hash()
                             .to_string()), // fixme getting hash for magnet links doesn't work
                     DownloadUrlContent::TorrentFile(torrent_file) =>
