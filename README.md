@@ -1,4 +1,4 @@
-# Telegram bot for Prowlarr
+# Telegram bot for [Prowlarr](https://github.com/Prowlarr/Prowlarr)
 
 Telegram bot interface for downloading content via Prowlarr.
 
