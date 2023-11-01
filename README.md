@@ -29,7 +29,7 @@ Configuration is done through environment variables.
 
 services:
   prowlarr-tg-client:
-    image: ghcr.io/fertkir/prowlarr-telegram-client:main
+    image: ghcr.io/fertkir/prowlarr-telegram-client:master
     user: "1000:1000" # TODO replace with your user and group ids
     environment:
       - COMPLETE_PORT=12345
@@ -58,8 +58,8 @@ services:
       - PUID=1000  # TODO replace with your user id
       - PGID=1000  # TODO replace with your group id
       - TZ=Etc/UTC
-      - DOCKER_MODS=ghcr.io/fertkir/prowlarr-tg-client-transmission:main # download-complete callback support
-      - PROWLARR_CLIENT_SERVER_URL=http://prowlarr-tg-client:12345       # download-complete callback support
+      - DOCKER_MODS=ghcr.io/fertkir/prowlarr-tg-client-transmission:master # download-complete callback support
+      - PROWLARR_CLIENT_SERVER_URL=http://prowlarr-tg-client:12345         # download-complete callback support
     volumes:
       - transmission-config:/config
       - /home/username/Downloads:/downloads # TODO: replace with your downloads directory
