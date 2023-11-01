@@ -1,3 +1,4 @@
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use teloxide::{Bot, dptree};
@@ -10,6 +11,7 @@ use crate::downloads_tracker::DownloadsTracker;
 use crate::prowlarr::ProwlarrClient;
 use crate::telegram::message_handler;
 use crate::torrent_data::TorrentDataStore;
+use crate::util;
 
 pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
     log::info!("Starting torrents bot...");
@@ -26,7 +28,7 @@ pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
         .enable_ctrlc_handler()
         .build();
     if let (Ok(port), Ok(url)) = (std::env::var("WEBHOOK_PORT"), std::env::var("WEBHOOK_URL")) {
-        let addr = ([0, 0, 0, 0], port.parse().unwrap()).into();
+        let addr = SocketAddr::new(util::parse_ip("WEBHOOK_IP"), port.parse().unwrap());
         let webhook_listener = webhooks::axum(bot, webhooks::Options::new(addr, reqwest::Url::parse(&url).unwrap()))
             .await
             .unwrap();

@@ -13,6 +13,7 @@ mod torrent_data;
 mod web_server;
 mod downloads_tracker;
 mod telegram;
+mod util;
 
 i18n!("locales", fallback = "en");
 

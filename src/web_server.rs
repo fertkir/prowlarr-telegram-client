@@ -1,3 +1,4 @@
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use serde::Deserialize;
@@ -8,6 +9,7 @@ use warp::Filter;
 use warp::reply::WithStatus;
 
 use crate::downloads_tracker::DownloadsTracker;
+use crate::util;
 
 #[derive(Deserialize, Debug)]
 struct CompletionRequest {
@@ -23,8 +25,9 @@ pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
             .and(warp::any().map(move || downloads_tracker.clone()))
             .and(warp::any().map(move || bot.clone()))
             .then(completion);
-        let (addr, fut) = warp::serve(filter)
-            .bind_with_graceful_shutdown(([0, 0, 0, 0], port.parse().unwrap()), async move { // todo parameterize bind port
+        let addr = SocketAddr::new(util::parse_ip("COMPLETE_IP"), port.parse().unwrap());
+        let (_, fut) = warp::serve(filter)
+            .bind_with_graceful_shutdown(addr, async move {
                 tokio::signal::ctrl_c()
                     .await
                     .expect("failed to listen to shutdown signal");
