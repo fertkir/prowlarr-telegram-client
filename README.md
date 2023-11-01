@@ -1,5 +1,7 @@
 # Telegram bot for Prowlarr
 
+![Screencast](https://github.com/fertkir/prowlarr-telegram-client/assets/5433737/65898a6a-1316-4be0-a0a4-9239669dd779)
+
 ### Configuration
 
 Configuration is done through environment variables.
