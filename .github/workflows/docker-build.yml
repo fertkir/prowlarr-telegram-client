@@ -36,8 +36,5 @@ jobs:
         with:
           context: .
           push: true
-          build-args: |
-            REPO=${{ env.GITHUB_SERVER_URL }}/${{ env.GITHUB_REPOSITORY }}
-            REVISION=${{ env.GITHUB_SHA }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
