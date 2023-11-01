@@ -19,7 +19,7 @@ i18n!("locales", fallback = "en");
 #[tokio::main]
 async fn main() {
     env_logger::init();
-    let bot = Bot::from_env(); // add TELOXIDE_PROXY env var to proxy to Telegram
+    let bot = Bot::from_env();
     let downloads_tracker = Arc::new(DownloadsTracker::new());
     tokio::join!(
         telegram::dispatcher::run(bot.clone(), downloads_tracker.clone()),
