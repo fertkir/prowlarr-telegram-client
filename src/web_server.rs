@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use derive_more::Display;
 use serde::Deserialize;
 use teloxide::Bot;
 use teloxide::prelude::Requester;
@@ -11,7 +12,8 @@ use warp::reply::WithStatus;
 use crate::downloads_tracker::DownloadsTracker;
 use crate::util;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Display)]
+#[display(fmt = "{{ hash: {}, name: {} }}", hash, name)]
 struct CompletionRequest {
     hash: String,
     name: String
@@ -41,7 +43,7 @@ pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
 async fn completion(request: CompletionRequest,
                     downloads_tracker: Arc<DownloadsTracker>,
                     bot: Bot) -> WithStatus<String> {
-    log::info!("{:?}", request); // todo use something normal instead of Debug trait
+    log::info!("Received download completion notification for {}", request);
     for user in downloads_tracker.remove(request.hash).iter() {
         let bot = bot.clone();
         let download_name = request.name.clone();

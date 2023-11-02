@@ -1,18 +1,14 @@
-use std::fmt::{Display, Formatter};
+use derive_more::Display;
+
 use crate::uuid_mapper::UuidMapper;
 
-#[derive(Clone)]
+#[derive(Clone, Display)]
+#[display(fmt = "{{ indexer_id: {}, guid: {} }}", indexer_id, guid)]
 pub struct TorrentData {
     pub guid: String,
     pub indexer_id: u8,
     pub download_url: Option<String>,
     pub magnet_url: Option<String>,
-}
-
-impl Display for TorrentData {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{{ indexerId: {}, guid: {} }}", self.indexer_id, self.guid)
-    }
 }
 
 pub type TorrentDataStore = UuidMapper<TorrentData>;

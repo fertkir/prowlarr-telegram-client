@@ -185,7 +185,7 @@ async fn get_torrent_hash(torrent_data: &TorrentData,
                         Ok(MagnetLink::new(&link)
                             .map_err(|err| err.to_string())? // todo add info about where an error occurred
                             .hash()
-                            .to_string()), // fixme getting hash for magnet links doesn't work
+                            .to_string()), // fixme: https://github.com/angrynode/hightorrent/issues/2
                     DownloadUrlContent::TorrentFile(torrent_file) =>
                         Ok(TorrentFile::from_slice(torrent_file.as_ref())
                             .map_err(|err| err.to_string())?
