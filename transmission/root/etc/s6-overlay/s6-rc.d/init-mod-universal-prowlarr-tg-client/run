@@ -10,8 +10,11 @@ if [[ -n "$PROWLARR_CLIENT_SERVER_URL" ]]; then
     echo "curl -X PUT '$PROWLARR_CLIENT_SERVER_URL/complete' -H 'Content-Type: application/json' -d \"{\\\"hash\\\":\\\"\$TR_TORRENT_HASH\\\",\\\"name\\\":\\\"\${TR_TORRENT_NAME//\\\"/\\\\\\\"}\\\"}\"" >> /config/done-script
     chmod +x /config/done-script
     lsiown abc:abc /config/done-script
+else
+    sed -i '/script-torrent-done-enabled/c\    "script-torrent-done-enabled": false,' /config/settings.json
+    sed -i '/script-torrent-done-filename/c\    "script-torrent-done-filename": "",' /config/settings.json
+    rm -f /config/done-script
 fi
-# todo add else clause (reset the done-script settings)
 
 # Customize downloads directories
 if [[ -n "$DOWNLOAD_DIR" ]]; then
