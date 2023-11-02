@@ -51,9 +51,12 @@ async fn completion(request: CompletionRequest,
         let locale = user.locale.clone();
         task::spawn(async move {
             match bot.send_message(chat_id, t!("download_complete", locale = &locale, name = download_name)).await {
-                Ok(_) => {}
+                Ok(_) => {
+                    log::info!("userId {} | Sent download complete notification for \"{}\"", chat_id, download_name);
+                }
                 Err(err) => {
-                    log::error!("error: {}", err) // todo change error message
+                    log::error!("userId {} | Could not send download complete notification for \"{}\": {}",
+                        chat_id, download_name, err);
                 }
             };
         });
