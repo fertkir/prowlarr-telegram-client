@@ -45,7 +45,7 @@ const PROWLARR_BASE_URL_ENV: &str = "PROWLARR_BASE_URL";
 impl ProwlarrClient {
     pub fn from_env() -> ProwlarrClient {
         ProwlarrClient {
-            api_key: get_env(PROWLARR_API_KEY_ENV),
+            api_key: get_env(PROWLARR_API_KEY_ENV), // todo fall back to a file with the key
             base_url: ProwlarrClient::parse_base_url(),
             client: Client::new(),
         }
