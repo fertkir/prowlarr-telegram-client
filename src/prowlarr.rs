@@ -1,3 +1,5 @@
+use std::fs;
+
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
 use reqwest::{Client, Response};
@@ -40,12 +42,13 @@ struct DownloadParams<'a> {
 }
 
 const PROWLARR_API_KEY_ENV: &str = "PROWLARR_API_KEY";
+const PROWLARR_API_KEY_FILE_ENV: &str = "PROWLARR_API_KEY_FILE";
 const PROWLARR_BASE_URL_ENV: &str = "PROWLARR_BASE_URL";
 
 impl ProwlarrClient {
     pub fn from_env() -> ProwlarrClient {
         ProwlarrClient {
-            api_key: get_env(PROWLARR_API_KEY_ENV), // todo fall back to a file with the key
+            api_key: get_api_key(),
             base_url: ProwlarrClient::parse_base_url(),
             client: Client::new(),
         }
@@ -107,4 +110,15 @@ impl ProwlarrClient {
 
 fn get_env(env: &str) -> String {
     std::env::var(env).unwrap_or_else(|_| panic!("Cannot get the {env} env variable"))
+}
+
+fn get_api_key() -> String {
+    if let Ok(api_key) = std::env::var(PROWLARR_API_KEY_ENV) {
+        api_key
+    } else if let Ok(api_key_file) = std::env::var(PROWLARR_API_KEY_FILE_ENV) {
+        fs::read_to_string(api_key_file.clone())
+            .unwrap_or_else(|_| panic!("Could not read {PROWLARR_API_KEY_FILE_ENV} file {api_key_file}"))
+    } else {
+        panic!("Neither {PROWLARR_API_KEY_ENV} nor {PROWLARR_API_KEY_FILE_ENV} env variable is provided")
+    }
 }
