@@ -1,12 +1,25 @@
 use std::collections::{HashMap, HashSet};
+use std::hash::{Hash, Hasher};
 use std::sync::Mutex;
 
 use teloxide::types::ChatId;
 
-#[derive(Eq, Hash, PartialEq)]
+#[derive(Eq)]
 pub struct User {
     pub chat_id: ChatId,
     pub locale: String
+}
+
+impl PartialEq for User {
+    fn eq(&self, other: &Self) -> bool {
+        self.chat_id == other.chat_id
+    }
+}
+
+impl Hash for User {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.chat_id.hash(state)
+    }
 }
 
 pub struct DownloadsTracker {
