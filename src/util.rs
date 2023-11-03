@@ -6,3 +6,29 @@ pub fn parse_ip(env_var: &str) -> IpAddr {
         .parse::<Ipv4Addr>()
         .unwrap_or_else(|_| panic!("Cannot parse the {env_var} env variable")))
 }
+
+#[cfg(test)]
+mod tests {
+    use std::env;
+    use crate::util::parse_ip;
+
+    #[test]
+    fn parse_ip_from_env_var() {
+        env::set_var("SOME_IP", "127.0.0.1");
+
+        assert_eq!(parse_ip("SOME_IP").to_string(), "127.0.0.1")
+    }
+
+    #[test]
+    fn default_value() {
+        assert_eq!(parse_ip("SOME_IP").to_string(), "0.0.0.0")
+    }
+
+    #[test]
+    #[should_panic(expected = "Cannot parse the SOME_IP env variable")]
+    fn incorrect_ip_address() {
+        env::set_var("SOME_IP", "aaa");
+
+        parse_ip("SOME_IP");
+    }
+}

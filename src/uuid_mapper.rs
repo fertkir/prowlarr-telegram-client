@@ -40,3 +40,34 @@ impl<V: Clone> UuidMapper<V> {
         self.map.get(bot_uuid).map(|e| e.value().clone())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::uuid_mapper::UuidMapper;
+
+    #[test]
+    fn get_same_value_multiple_times() {
+        let mapper = UuidMapper::<String>::new();
+        let key1 = mapper.put("value 1".to_string());
+
+        assert_eq!(mapper.get(&key1), Some("value 1".to_string()));
+        assert_eq!(mapper.get(&key1), Some("value 1".to_string()));
+    }
+
+    #[test]
+    fn put_and_get_different_values() {
+        let mapper = UuidMapper::<String>::new();
+        let key1 = mapper.put("value 1".to_string());
+        let key2 = mapper.put("value 2".to_string());
+
+        assert_eq!(mapper.get(&key1), Some("value 1".to_string()));
+        assert_eq!(mapper.get(&key2), Some("value 2".to_string()));
+    }
+
+    #[test]
+    fn get_none_if_key_is_unknown() {
+        let mapper = UuidMapper::<String>::new();
+
+        assert_eq!(mapper.get("key1"), None);
+    }
+}
