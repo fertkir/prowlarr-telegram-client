@@ -14,21 +14,21 @@ mod tests {
 
     #[test]
     fn parse_ip_from_env_var() {
-        env::set_var("SOME_IP", "127.0.0.1");
+        env::set_var("LOCALHOST", "127.0.0.1");
 
-        assert_eq!(parse_ip("SOME_IP").to_string(), "127.0.0.1")
+        assert_eq!(parse_ip("LOCALHOST").to_string(), "127.0.0.1")
     }
 
     #[test]
     fn default_value() {
-        assert_eq!(parse_ip("SOME_IP").to_string(), "0.0.0.0")
+        assert_eq!(parse_ip("DEFAULT_IP").to_string(), "0.0.0.0")
     }
 
     #[test]
-    #[should_panic(expected = "Cannot parse the SOME_IP env variable")]
+    #[should_panic(expected = "Cannot parse the INCORRECT_IP env variable")]
     fn incorrect_ip_address() {
-        env::set_var("SOME_IP", "aaa");
+        env::set_var("INCORRECT_IP", "aaa");
 
-        parse_ip("SOME_IP");
+        parse_ip("INCORRECT_IP");
     }
 }

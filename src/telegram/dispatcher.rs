@@ -51,3 +51,27 @@ fn get_allowed_users() -> Vec<u64> {
                 string of integers. Value \"{user}\" is unexpected")))
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    mod allowed_users {
+        use std::env;
+
+        use crate::telegram::dispatcher::get_allowed_users;
+
+        #[test]
+        fn empty_list_if_var_is_not_set() {
+            assert_eq!(get_allowed_users().len(), 0)
+        }
+
+        #[test]
+        fn multiple_users() {
+            env::set_var("ALLOWED_USERS", "1000,2000,3000");
+
+            assert_eq!(get_allowed_users().len(), 3);
+            assert_eq!(get_allowed_users().get(0), Some(1000).as_ref());
+            assert_eq!(get_allowed_users().get(1), Some(2000).as_ref());
+            assert_eq!(get_allowed_users().get(2), Some(3000).as_ref());
+        }
+    }
+}
