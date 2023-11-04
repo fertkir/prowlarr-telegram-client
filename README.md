@@ -1,5 +1,8 @@
 # Telegram bot for [Prowlarr](https://github.com/Prowlarr/Prowlarr)
 
+[![Build Status](https://github.com/fertkir/prowlarr-telegram-client/workflows/CI/badge.svg)](https://github.com/fertkir/prowlarr-telegram-client/actions)
+[![Coverage Status](https://coveralls.io/repos/github/fertkir/prowlarr-telegram-client/badge.svg?branch=main)](https://coveralls.io/github/fertkir/prowlarr-telegram-client?branch=main)
+
 Telegram bot interface for downloading content via Prowlarr.
 
 ![Screencast](https://github.com/fertkir/prowlarr-telegram-client/assets/5433737/65898a6a-1316-4be0-a0a4-9239669dd779)
