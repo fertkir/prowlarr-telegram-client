@@ -1,0 +1,15 @@
+name: Coverage
+on:
+  push:
+    branches:
+      - "*"
+env:
+  RUST_BACKTRACE: 1
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+      - name: coverage
+        run: cargo run --release -- tarpaulin --engine llvm --follow-exec --post-test-delay 10 --coveralls ${{ secrets.COVERALLS_TOKEN }}
