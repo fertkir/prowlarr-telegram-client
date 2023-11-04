@@ -27,3 +27,5 @@ derive_more = "0.99.17"
 
 [dev-dependencies]
 temp-env = "0.3.6"
+tempfile = "3.8.1"
+wiremock = "0.5.21"

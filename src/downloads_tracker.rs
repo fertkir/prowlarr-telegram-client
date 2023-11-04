@@ -99,4 +99,13 @@ mod tests {
         assert_eq!(hash1_users.len(), 1);
         assert_eq!(hash1_users.contains(&User { chat_id: ChatId(1), locale: "en".to_string() }), true);
     }
+
+    #[test]
+    fn remove_method_should_remove_value_from_tracker() {
+        let tracker = DownloadsTracker::new();
+        tracker.add("hash1".to_string(), ChatId(1), "ru".to_string());
+
+        assert_eq!(tracker.remove("hash1".to_string()).len(), 1);
+        assert_eq!(tracker.remove("hash1".to_string()).len(), 0);
+    }
 }

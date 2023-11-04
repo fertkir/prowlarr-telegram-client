@@ -59,7 +59,9 @@ mod tests {
 
         #[test]
         fn empty_list_if_var_is_not_set() {
-            assert_eq!(get_allowed_users().len(), 0)
+            temp_env::with_var_unset("ALLOWED_USERS", || {
+                assert_eq!(get_allowed_users().len(), 0)
+            });
         }
 
         #[test]

@@ -31,7 +31,7 @@ pub struct SearchResult {
 
 pub enum DownloadUrlContent {
     MagnetLink(String),
-    TorrentFile(Bytes)
+    TorrentFile(Bytes),
 }
 
 #[derive(Serialize)]
@@ -73,7 +73,7 @@ impl ProwlarrClient {
     pub async fn download(&self, indexer_id: &u8, guid: &str) -> reqwest::Result<Response> {
         self.client.post(format!("{}api/v1/search?apikey={}", self.base_url, self.api_key))
             .header(CONTENT_TYPE, "application/json")
-            .json(&DownloadParams{ guid, indexer_id })
+            .json(&DownloadParams { guid, indexer_id })
             .send()
             .await
     }
@@ -82,12 +82,12 @@ impl ProwlarrClient {
         let response = self.client.get(self.replace_base_url(download_url)?)
             .send()
             .await
-            .map_err(|err|err.to_string())?;
+            .map_err(|err| err.to_string())?;
         if response.status().is_redirection() {
             let magnet = response.headers().get(LOCATION)
                 .ok_or("Missing expected Location header")?
                 .to_str()
-                .map_err(|err|err.to_string())?
+                .map_err(|err| err.to_string())?
                 .to_string();
             Ok(DownloadUrlContent::MagnetLink(magnet))
         } else if response.status().is_success() {
@@ -101,7 +101,7 @@ impl ProwlarrClient {
     }
 
     fn replace_base_url(&self, url: &str) -> Result<String, String> {
-        let mut url = Url::parse(url).map_err(|err|err.to_string())?;
+        let mut url = Url::parse(url).map_err(|err| err.to_string())?;
         url.set_host(self.base_url.host_str()).unwrap();
         url.set_port(self.base_url.port()).unwrap();
         Ok(url.to_string())
@@ -120,5 +120,225 @@ fn get_api_key() -> String {
             .unwrap_or_else(|_| panic!("Could not read {PROWLARR_API_KEY_FILE_ENV} file {api_key_file}"))
     } else {
         panic!("Neither {PROWLARR_API_KEY_ENV} nor {PROWLARR_API_KEY_FILE_ENV} env variable is provided")
+    }
+}
+
+#[cfg(test)]
+mod test {
+    mod get_api_key {
+        use std::fs::File;
+        use std::io::Write;
+
+        use crate::prowlarr::{get_api_key, PROWLARR_API_KEY_ENV, PROWLARR_API_KEY_FILE_ENV};
+
+        #[test]
+        fn from_env_var() {
+            temp_env::with_var(PROWLARR_API_KEY_ENV, Some("key"), || {
+                assert_eq!(get_api_key(), "key")
+            });
+        }
+
+        #[test]
+        fn from_file() {
+            let dir = tempfile::tempdir().unwrap();
+            let file_path = dir.path().join("file_with_key");
+            let file_path_str = file_path.to_str().unwrap().to_string();
+            let mut file = File::create(file_path).unwrap();
+            write!(file, "key").unwrap();
+            temp_env::with_var(PROWLARR_API_KEY_FILE_ENV, Some(file_path_str), || {
+                assert_eq!(get_api_key(), "key")
+            });
+        }
+
+        #[test]
+        #[should_panic(expected = "Could not read PROWLARR_API_KEY_FILE file /unknown/path")]
+        fn panic_if_no_such_file() {
+            temp_env::with_var(PROWLARR_API_KEY_FILE_ENV, Some("/unknown/path"), || {
+                get_api_key()
+            });
+        }
+
+        #[test]
+        #[should_panic(expected = "Neither PROWLARR_API_KEY nor PROWLARR_API_KEY_FILE env variable is provided")]
+        fn panic_if_no_vars_provided() {
+            temp_env::with_var_unset(PROWLARR_API_KEY_FILE_ENV, || {
+                get_api_key()
+            });
+        }
+    }
+
+    mod get_env {
+        use crate::prowlarr::get_env;
+
+        #[test]
+        fn get_var() {
+            temp_env::with_var("SOME_VAR", Some("some value"), || {
+                assert_eq!(get_env("SOME_VAR"), "some value")
+            });
+        }
+
+        #[test]
+        #[should_panic(expected = "Cannot get the MISSING_VAR env variable")]
+        fn panic_if_no_var() {
+            get_env("MISSING_VAR");
+        }
+    }
+
+    mod client {
+        use chrono::DateTime;
+        use reqwest::header::CONTENT_TYPE;
+        use reqwest::StatusCode;
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+        use wiremock::matchers::{header, method, path, query_param};
+
+        use crate::prowlarr::{PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV, ProwlarrClient};
+
+        #[test]
+        #[should_panic(expected = "Could not parse PROWLARR_BASE_URL: relative URL without a base: \"incorrect_url\"")]
+        fn bad_base_url() {
+            temp_env::with_vars([(PROWLARR_API_KEY_ENV, Some("key")),
+                                    (PROWLARR_BASE_URL_ENV, Some("incorrect_url"))], || {
+                ProwlarrClient::from_env()
+            });
+        }
+
+        #[tokio::main]
+        #[test]
+        async fn search() {
+            let mock_server = MockServer::start().await;
+            Mock::given(method("GET"))
+                .and(path("/api/v1/search"))
+                .and(query_param("apikey", "key123"))
+                .and(query_param("query", "Ubuntu"))
+                .respond_with(ResponseTemplate::new(200)
+                    .set_body_string(
+                        "[{\"guid\":\"101\",\"indexerId\":1,\"title\":\"Title\",\
+                        \"size\":20000,\"publishDate\":\"2015-05-15T00:00:00Z\",\
+                        \"infoUrl\":\"info url\",\"downloadUrl\":\"download url\",\
+                        \"magnetUrl\":\"magnet url\",\"seeders\":10,\"leechers\":20,\"grabs\":5}]"))
+                .mount(&mock_server)
+                .await;
+
+            let prowlarr_client = temp_env::with_vars(
+                [(PROWLARR_API_KEY_ENV, Some("key123")),
+                    (PROWLARR_BASE_URL_ENV, Some(&mock_server.uri()))],
+                || ProwlarrClient::from_env());
+
+            let result = prowlarr_client.search("Ubuntu").await.unwrap();
+
+            assert_eq!(result.len(), 1);
+
+            let search_result = result.get(0).unwrap();
+            assert_eq!(search_result.guid, "101");
+            assert_eq!(search_result.indexer_id, 1);
+            assert_eq!(search_result.title, "Title");
+            assert_eq!(search_result.size, 20000);
+            assert_eq!(search_result.publish_date,
+                       DateTime::from_timestamp(1431648000, 0).unwrap());
+            assert_eq!(search_result.download_url, Some("download url".to_string()));
+            assert_eq!(search_result.magnet_url, Some("magnet url".to_string()));
+            assert_eq!(search_result.info_url, "info url");
+            assert_eq!(search_result.seeders, 10);
+            assert_eq!(search_result.leechers, 20);
+            assert_eq!(search_result.grabs, Some(5));
+        }
+
+        #[tokio::main]
+        #[test]
+        async fn download() {
+            let mock_server = MockServer::start().await;
+            Mock::given(method("POST"))
+                .and(header(CONTENT_TYPE, "application/json"))
+                .and(path("/api/v1/search"))
+                .and(query_param("apikey", "key123"))
+                .respond_with(ResponseTemplate::new(200))
+                .mount(&mock_server)
+                .await;
+
+            let prowlarr_client = temp_env::with_vars(
+                [(PROWLARR_API_KEY_ENV, Some("key123")),
+                    (PROWLARR_BASE_URL_ENV, Some(&mock_server.uri()))],
+                || ProwlarrClient::from_env());
+
+            let result = prowlarr_client.download(&1, "guid123").await.unwrap();
+
+            assert_eq!(result.status(), StatusCode::OK);
+        }
+
+        mod download_url_content {
+            use reqwest::header::LOCATION;
+            use wiremock::{Mock, MockServer, ResponseTemplate};
+            use wiremock::matchers::{method, path};
+
+            use crate::prowlarr::{DownloadUrlContent, PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV, ProwlarrClient};
+
+            const DOWNLOAD_URL: &str = "http://localhost:9696/content";
+
+            #[tokio::main]
+            #[test]
+            async fn magnet_link() {
+                let mock_server = MockServer::start().await;
+                let magnet_link = "magnet:?xt=urn:btih:63A46761289B3D1";
+                Mock::given(method("GET"))
+                    .and(path("/content"))
+                    .respond_with(ResponseTemplate::new(302)
+                        .append_header(LOCATION, magnet_link))
+                    .mount(&mock_server)
+                    .await;
+
+                let prowlarr_client = temp_env::with_vars(
+                    [(PROWLARR_API_KEY_ENV, Some("key123")),
+                        (PROWLARR_BASE_URL_ENV, Some(&mock_server.uri()))],
+                    || ProwlarrClient::from_env());
+
+                let result = prowlarr_client.get_download_url_content(DOWNLOAD_URL).await.unwrap();
+                match result {
+                    DownloadUrlContent::MagnetLink(link) => assert_eq!(link, magnet_link.to_string()),
+                    DownloadUrlContent::TorrentFile(_) => panic!("torrent file unexpected")
+                }
+            }
+
+            #[tokio::main]
+            #[test]
+            async fn torrent_file() {
+                let mock_server = MockServer::start().await;
+                Mock::given(method("GET"))
+                    .and(path("/content"))
+                    .respond_with(ResponseTemplate::new(200)
+                        .set_body_string("file contents"))
+                    .mount(&mock_server)
+                    .await;
+
+                let prowlarr_client = temp_env::with_vars(
+                    [(PROWLARR_API_KEY_ENV, Some("key123")),
+                        (PROWLARR_BASE_URL_ENV, Some(&mock_server.uri()))],
+                    || ProwlarrClient::from_env());
+
+                let result = prowlarr_client.get_download_url_content(DOWNLOAD_URL).await.unwrap();
+                match result {
+                    DownloadUrlContent::MagnetLink(_) => panic!("magnet link unexpected"),
+                    DownloadUrlContent::TorrentFile(file) => assert_eq!(file, "file contents")
+                }
+            }
+
+            #[tokio::main]
+            #[test]
+            #[should_panic(expected = "Unexpected response status code: 404")]
+            async fn not_found() {
+                let mock_server = MockServer::start().await;
+                Mock::given(method("GET"))
+                    .and(path("/content"))
+                    .respond_with(ResponseTemplate::new(404))
+                    .mount(&mock_server)
+                    .await;
+
+                let prowlarr_client = temp_env::with_vars(
+                    [(PROWLARR_API_KEY_ENV, Some("key123")),
+                        (PROWLARR_BASE_URL_ENV, Some(&mock_server.uri()))],
+                    || ProwlarrClient::from_env());
+
+                prowlarr_client.get_download_url_content(DOWNLOAD_URL).await.unwrap();
+            }
+        }
     }
 }
