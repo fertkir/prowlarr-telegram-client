@@ -222,7 +222,7 @@ mod test {
             let prowlarr_client = temp_env::with_vars(
                 [(PROWLARR_API_KEY_ENV, Some("key123")),
                     (PROWLARR_BASE_URL_ENV, Some(&mock_server.uri()))],
-                || ProwlarrClient::from_env());
+                ProwlarrClient::from_env);
 
             let result = prowlarr_client.search("Ubuntu").await.unwrap();
 
@@ -258,7 +258,7 @@ mod test {
             let prowlarr_client = temp_env::with_vars(
                 [(PROWLARR_API_KEY_ENV, Some("key123")),
                     (PROWLARR_BASE_URL_ENV, Some(&mock_server.uri()))],
-                || ProwlarrClient::from_env());
+                ProwlarrClient::from_env);
 
             let result = prowlarr_client.download(&1, "guid123").await.unwrap();
 
@@ -289,7 +289,7 @@ mod test {
                 let prowlarr_client = temp_env::with_vars(
                     [(PROWLARR_API_KEY_ENV, Some("key123")),
                         (PROWLARR_BASE_URL_ENV, Some(&mock_server.uri()))],
-                    || ProwlarrClient::from_env());
+                    ProwlarrClient::from_env);
 
                 let result = prowlarr_client.get_download_url_content(DOWNLOAD_URL).await.unwrap();
                 match result {
@@ -312,7 +312,7 @@ mod test {
                 let prowlarr_client = temp_env::with_vars(
                     [(PROWLARR_API_KEY_ENV, Some("key123")),
                         (PROWLARR_BASE_URL_ENV, Some(&mock_server.uri()))],
-                    || ProwlarrClient::from_env());
+                    ProwlarrClient::from_env);
 
                 let result = prowlarr_client.get_download_url_content(DOWNLOAD_URL).await.unwrap();
                 match result {
@@ -335,7 +335,7 @@ mod test {
                 let prowlarr_client = temp_env::with_vars(
                     [(PROWLARR_API_KEY_ENV, Some("key123")),
                         (PROWLARR_BASE_URL_ENV, Some(&mock_server.uri()))],
-                    || ProwlarrClient::from_env());
+                    ProwlarrClient::from_env);
 
                 prowlarr_client.get_download_url_content(DOWNLOAD_URL).await.unwrap();
             }

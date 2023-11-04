@@ -77,7 +77,7 @@ mod tests {
         fn one_user() {
             temp_env::with_var("ALLOWED_USERS", Some("1000"), || {
                 assert_eq!(get_allowed_users().len(), 1);
-                assert_eq!(get_allowed_users().get(0), Some(1000).as_ref());
+                assert_eq!(get_allowed_users().first(), Some(1000).as_ref());
             });
         }
 
@@ -85,7 +85,7 @@ mod tests {
         fn multiple_users() {
             temp_env::with_var("ALLOWED_USERS", Some("1000,2000,3000"), || {
                 assert_eq!(get_allowed_users().len(), 3);
-                assert_eq!(get_allowed_users().get(0), Some(1000).as_ref());
+                assert_eq!(get_allowed_users().first(), Some(1000).as_ref());
                 assert_eq!(get_allowed_users().get(1), Some(2000).as_ref());
                 assert_eq!(get_allowed_users().get(2), Some(3000).as_ref());
             });

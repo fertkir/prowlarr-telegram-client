@@ -66,7 +66,7 @@ mod tests {
 
         let hash2_users = tracker.remove("hash1".to_string());
         assert_eq!(hash2_users.len(), 1);
-        assert_eq!(hash2_users.contains(&User { chat_id: ChatId(2), locale: "ru".to_string() }), true);
+        assert!(hash2_users.contains(&User { chat_id: ChatId(2), locale: "ru".to_string() }));
     }
 
     #[test]
@@ -85,8 +85,8 @@ mod tests {
 
         let hash1_users = tracker.remove("hash1".to_string());
         assert_eq!(hash1_users.len(), 2);
-        assert_eq!(hash1_users.contains(&User { chat_id: ChatId(1), locale: "en".to_string() }), true);
-        assert_eq!(hash1_users.contains(&User { chat_id: ChatId(2), locale: "ru".to_string() }), true);
+        assert!(hash1_users.contains(&User { chat_id: ChatId(1), locale: "en".to_string() }));
+        assert!(hash1_users.contains(&User { chat_id: ChatId(2), locale: "ru".to_string() }));
     }
 
     #[test]
@@ -97,7 +97,7 @@ mod tests {
 
         let hash1_users = tracker.remove("hash1".to_string());
         assert_eq!(hash1_users.len(), 1);
-        assert_eq!(hash1_users.contains(&User { chat_id: ChatId(1), locale: "en".to_string() }), true);
+        assert!(hash1_users.contains(&User { chat_id: ChatId(1), locale: "en".to_string() }));
     }
 
     #[test]
