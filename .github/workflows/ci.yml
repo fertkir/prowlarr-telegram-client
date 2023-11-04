@@ -12,7 +12,6 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-#      - run: rustup update stable && rustup default stable
+      - uses: actions/checkout@v4
       - run: cargo test
       - run: cargo clippy --all-targets --all-features
