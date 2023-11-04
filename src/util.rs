@@ -9,14 +9,13 @@ pub fn parse_ip(env_var: &str) -> IpAddr {
 
 #[cfg(test)]
 mod tests {
-    use std::env;
     use crate::util::parse_ip;
 
     #[test]
     fn parse_ip_from_env_var() {
-        env::set_var("LOCALHOST", "127.0.0.1");
-
-        assert_eq!(parse_ip("LOCALHOST").to_string(), "127.0.0.1")
+        temp_env::with_var("LOCALHOST", Some("127.0.0.1"), || {
+            assert_eq!(parse_ip("LOCALHOST").to_string(), "127.0.0.1")
+        });
     }
 
     #[test]
@@ -27,8 +26,8 @@ mod tests {
     #[test]
     #[should_panic(expected = "Cannot parse the INCORRECT_IP env variable")]
     fn incorrect_ip_address() {
-        env::set_var("INCORRECT_IP", "aaa");
-
-        parse_ip("INCORRECT_IP");
+        temp_env::with_var("INCORRECT_IP", Some("aaa"), || {
+            parse_ip("INCORRECT_IP");
+        });
     }
 }

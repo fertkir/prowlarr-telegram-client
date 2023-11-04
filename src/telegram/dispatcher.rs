@@ -55,8 +55,6 @@ fn get_allowed_users() -> Vec<u64> {
 #[cfg(test)]
 mod tests {
     mod allowed_users {
-        use std::env;
-
         use crate::telegram::dispatcher::get_allowed_users;
 
         #[test]
@@ -65,13 +63,30 @@ mod tests {
         }
 
         #[test]
-        fn multiple_users() {
-            env::set_var("ALLOWED_USERS", "1000,2000,3000");
+        #[should_panic(expected = "ALLOWED_USERS list must be a comma-separated \
+                string of integers. Value \"aaa\" is unexpected")]
+        fn incorrect_allowed_users_value() {
+            temp_env::with_var("ALLOWED_USERS", Some("aaa"), || {
+                get_allowed_users();
+            });
+        }
 
-            assert_eq!(get_allowed_users().len(), 3);
-            assert_eq!(get_allowed_users().get(0), Some(1000).as_ref());
-            assert_eq!(get_allowed_users().get(1), Some(2000).as_ref());
-            assert_eq!(get_allowed_users().get(2), Some(3000).as_ref());
+        #[test]
+        fn one_user() {
+            temp_env::with_var("ALLOWED_USERS", Some("1000"), || {
+                assert_eq!(get_allowed_users().len(), 1);
+                assert_eq!(get_allowed_users().get(0), Some(1000).as_ref());
+            });
+        }
+
+        #[test]
+        fn multiple_users() {
+            temp_env::with_var("ALLOWED_USERS", Some("1000,2000,3000"), || {
+                assert_eq!(get_allowed_users().len(), 3);
+                assert_eq!(get_allowed_users().get(0), Some(1000).as_ref());
+                assert_eq!(get_allowed_users().get(1), Some(2000).as_ref());
+                assert_eq!(get_allowed_users().get(2), Some(3000).as_ref());
+            });
         }
     }
 }
