@@ -47,7 +47,7 @@ async fn completion(request: CompletionRequest,
     for user in downloads_tracker.remove(request.hash).iter() {
         let bot = bot.clone();
         let download_name = request.name.clone();
-        let chat_id = user.chat_id.clone();
+        let chat_id = user.chat_id;
         let locale = user.locale.clone();
         task::spawn(async move {
             match bot.send_message(chat_id, t!("download_complete", locale = &locale, name = download_name)).await {
