@@ -8,6 +8,7 @@ use teloxide::payloads::{SendMessage, SendMessageSetters};
 use teloxide::prelude::{Message, Requester, ResponseResult};
 use teloxide::requests::JsonRequest;
 use teloxide::types::{ChatId, InputFile, ParseMode};
+use teloxide::utils::markdown;
 use teloxide::utils::markdown::bold;
 use teloxide::utils::markdown::link;
 
@@ -80,7 +81,7 @@ async fn search(prowlarr: &Arc<ProwlarrClient>,
                 Some(response) => {
                     let response_digest = to_digest(&response);
                     bot.send_message(msg.chat.id, response)
-                        .parse_mode(ParseMode::Markdown)
+                        .parse_mode(ParseMode::MarkdownV2)
                         .disable_web_page_preview(true)
                         .await?;
                     log::info!("userId {} | Sent search response \"{}\"", msg.chat.id, response_digest);
@@ -103,13 +104,15 @@ fn create_response(search_result: &SearchResult, bot_uuid: &str, locale: &str) -
     let downloads = search_result.grabs
         .map(|grabs| format!("{} {}", t!("downloaded", locale = &locale), grabs))
         .unwrap_or_default();
-    format!("{}\n{}\nS {} | L {} | {} | {} {} | {} {}\n{}: /d\\_{}\n{}: /m\\_{}\n\n",
-            search_result.title, link(&search_result.info_url, &t!("description", locale = &locale)),
+    format!("{}\n{}\nS {} \\| L {} \\| {} \\| {} {} \\| {} {}\n{}: /d\\_{}\n{}: /m\\_{}\n\n",
+            markdown::escape(&search_result.title),
+            link(&search_result.info_url, &t!("description", locale = &locale)),
             search_result.seeders, search_result.leechers, downloads, &t!("registered", locale = &locale),
-            search_result.publish_date.date_naive(), &t!("size", locale = &locale),
-            Byte::from_bytes(search_result.size).get_appropriate_unit(false),
+            markdown::escape(&search_result.publish_date.date_naive().to_string()),
+            &t!("size", locale = &locale),
+            markdown::escape(&Byte::from_bytes(search_result.size).get_appropriate_unit(false).to_string()),
             bold(&t!("download", locale = &locale)), bot_uuid,
-            &t!("get_link", locale = &locale), bot_uuid)
+            markdown::escape(&t!("get_link", locale = &locale)), bot_uuid)
 }
 
 fn to_digest(str: &str) -> String {
@@ -248,5 +251,5 @@ async fn get_link(prowlarr: &Arc<ProwlarrClient>,
 
 fn send_magnet(bot: &Bot, chat_id: ChatId, link: &str) -> JsonRequest<SendMessage> {
     bot.send_message(chat_id, format!("```\n{}\n```", link))
-        .parse_mode(ParseMode::Markdown)
+        .parse_mode(ParseMode::MarkdownV2)
 }
