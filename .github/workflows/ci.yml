@@ -13,5 +13,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: cargo test # todo add coverage reporting
-      - run: cargo clippy --all-targets --all-features
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - name: Test
+        run: cargo test --all-features
+      - name: Lint
+        run: cargo clippy --all-targets --all-features
+
+  coverage:
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    container:
+      image: xd009642/tarpaulin:develop-nightly
+      options: --security-opt seccomp=unconfined
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate code coverage
+        run: cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
+      - name: Upload to coveralls.io
+        uses: coverallsapp/github-action@v2
