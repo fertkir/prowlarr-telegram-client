@@ -60,22 +60,43 @@ mod tests {
     use crate::downloads_tracker::{DownloadsTracker, User};
 
     #[test]
-    fn add_and_remove() {
+    fn one_user_for_one_hash() {
+        let tracker = DownloadsTracker::new();
+        tracker.add("hash1".to_string(), ChatId(2), "ru".to_string());
+
+        let hash2_users = tracker.remove("hash1".to_string());
+        assert_eq!(hash2_users.len(), 1);
+        assert_eq!(hash2_users.contains(&User { chat_id: ChatId(2), locale: "ru".to_string() }), true);
+    }
+
+    #[test]
+    fn return_empty_set_if_unknown_hash() {
+        let tracker = DownloadsTracker::new();
+
+        let hash3_users = tracker.remove("hash3".to_string());
+        assert_eq!(hash3_users.len(), 0);
+    }
+
+    #[test]
+    fn multiple_users_for_same_hash() {
         let tracker = DownloadsTracker::new();
         tracker.add("hash1".to_string(), ChatId(1), "en".to_string());
         tracker.add("hash1".to_string(), ChatId(2), "ru".to_string());
-        tracker.add("hash2".to_string(), ChatId(2), "ru".to_string());
 
         let hash1_users = tracker.remove("hash1".to_string());
         assert_eq!(hash1_users.len(), 2);
         assert_eq!(hash1_users.contains(&User { chat_id: ChatId(1), locale: "en".to_string() }), true);
         assert_eq!(hash1_users.contains(&User { chat_id: ChatId(2), locale: "ru".to_string() }), true);
+    }
 
-        let hash2_users = tracker.remove("hash2".to_string());
-        assert_eq!(hash2_users.len(), 1);
-        assert_eq!(hash2_users.contains(&User { chat_id: ChatId(2), locale: "ru".to_string() }), true);
+    #[test]
+    fn user_with_same_id_is_same_user() {
+        let tracker = DownloadsTracker::new();
+        tracker.add("hash1".to_string(), ChatId(1), "ru".to_string());
+        tracker.add("hash1".to_string(), ChatId(1), "en".to_string());
 
-        let hash3_users = tracker.remove("hash3".to_string());
-        assert_eq!(hash3_users.len(), 0);
+        let hash1_users = tracker.remove("hash1".to_string());
+        assert_eq!(hash1_users.len(), 1);
+        assert_eq!(hash1_users.contains(&User { chat_id: ChatId(1), locale: "en".to_string() }), true);
     }
 }
