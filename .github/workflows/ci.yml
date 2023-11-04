@@ -35,3 +35,5 @@ jobs:
         run: cargo tarpaulin --all-targets --all-features --timeout 120 --out xml --skip-clean --target-dir target/tarpaulin
       - name: Upload to coveralls.io
         uses: coverallsapp/github-action@v2
+        with:
+          fail-on-error: false
