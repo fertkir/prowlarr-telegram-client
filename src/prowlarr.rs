@@ -1,6 +1,6 @@
 use std::fs;
-use async_trait::async_trait;
 
+use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use reqwest::{Client, Response};
 use reqwest::header::{CONTENT_TYPE, LOCATION};
@@ -202,8 +202,7 @@ mod test {
             });
         }
 
-        #[tokio::main]
-        #[test]
+        #[tokio::test]
         async fn search() {
             let mock_server = MockServer::start().await;
             Mock::given(method("GET"))
@@ -243,8 +242,7 @@ mod test {
             assert_eq!(search_result.grabs, Some(5));
         }
 
-        #[tokio::main]
-        #[test]
+        #[tokio::test]
         async fn download() {
             let mock_server = MockServer::start().await;
             Mock::given(method("POST"))
@@ -275,8 +273,7 @@ mod test {
 
             const DOWNLOAD_URL: &str = "http://localhost:9696/content";
 
-            #[tokio::main]
-            #[test]
+            #[tokio::test]
             async fn magnet_link() {
                 let mock_server = MockServer::start().await;
                 let magnet_link = "magnet:?xt=urn:btih:63A46761289B3D1";
@@ -299,8 +296,7 @@ mod test {
                 }
             }
 
-            #[tokio::main]
-            #[test]
+            #[tokio::test]
             async fn torrent_file() {
                 let mock_server = MockServer::start().await;
                 Mock::given(method("GET"))
@@ -322,8 +318,7 @@ mod test {
                 }
             }
 
-            #[tokio::main]
-            #[test]
+            #[tokio::test]
             #[should_panic(expected = "Unexpected response status code: 404")]
             async fn not_found() {
                 let mock_server = MockServer::start().await;

@@ -9,7 +9,6 @@ use teloxide::types::{ChatId, InputFile, ParseMode};
 
 use crate::downloads_tracker::DownloadsTracker;
 use crate::prowlarr::{ProwlarrClient, SearchResult};
-use crate::torrent;
 use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
 use crate::torrent::torrent_meta::TorrentMetaStore;
 
@@ -127,7 +126,7 @@ async fn download(prowlarr: &ProwlarrClient,
                     if response.status().is_success() {
                         bot.send_message(msg.chat.id, t!("sent_to_download", locale = &locale)).await?;
                         log::info!("userId {} | Sent {} for downloading", msg.chat.id, torrent_data);
-                        match torrent::util::get_torrent_hash(&torrent_data, prowlarr).await {
+                        match torrent_data.get_torrent_hash(prowlarr).await {
                             Ok(hash) => {
                                 downloads_tracker.add(hash, msg.chat.id, locale.clone());
                             }
