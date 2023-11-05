@@ -11,20 +11,20 @@ Telegram bot interface for downloading content via Prowlarr.
 
 Configuration is done through environment variables.
 
-| Variable              | Description                                                                                                                          |
-|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| ALLOWED_USERS         | Optional. Comma separated list of telegram user ids, who are allowed to use the bot. If not set, everyone is allowed to use the bot. |
-| COMPLETE_IP           | Optional. IP to bind the complete webhook to. Default: 0.0.0.0                                                                       |
-| COMPLETE_PORT         | Optional. TCP port to listen for download completion requests.                                                                       |
-| PROWLARR_API_KEY      | API key to access Prowlarr. Mandatory if PROWLARR_API_KEY_FILE isn't set.                                                            |
-| PROWLARR_API_KEY_FILE | Path to a file with API key to access Prowlarr. Mandatory if PROWLARR_API_KEY isn't set.                                             |
-| PROWLARR_BASE_URL     | e.g. http://localhost:9696                                                                                                           |
-| RUST_LOG              | Optional. Minimal log level. Default: info                                                                                           |
-| TELOXIDE_PROXY        | Optional. Proxy to use for connecting to Telegram, e.g. socks5://localhost:9000                                                      |
-| TELOXIDE_TOKEN        | Telegram bot token (from [@BotFather](https://t.me/BotFather) bot)                                                                   |
-| WEBHOOK_IP            | Optional. IP to bind the Telegram webhook to. Default: 0.0.0.0                                                                       |
-| WEBHOOK_PORT          | Optional if polling interaction is okay for you. Port on which the bot will be listening for requests from Telegram.                 |
-| WEBHOOK_URL           | Optional if polling interaction is okay for you. Example: https://<app-name>.herokuapp.com:443                                       |
+| Variable              | Description                                                                | Mandatory                             | Default |
+|-----------------------|----------------------------------------------------------------------------|---------------------------------------|---------|
+| ALLOWED_USERS         | Comma separated list of telegram user ids, who are allowed to use the bot. |                                       | Anyone  |
+| COMPLETE_IP           | IP to bind the complete webhook to.                                        |                                       | 0.0.0.0 |
+| COMPLETE_PORT         | TCP port to listen for download completion requests.                       |                                       |         |
+| PROWLARR_API_KEY      | API key to access Prowlarr.                                                | if PROWLARR_API_KEY_FILE isn't set    |         |
+| PROWLARR_API_KEY_FILE | Path to a file with API key to access Prowlarr.                            | if PROWLARR_API_KEY isn't set         |         |
+| PROWLARR_BASE_URL     | e.g. http://localhost:9696                                                 |                                       |         |
+| RUST_LOG              | Minimal log level.                                                         |                                       | info    |
+| TELOXIDE_PROXY        | Proxy to use for connecting to Telegram, e.g. socks5://localhost:9000      |                                       |         |
+| TELOXIDE_TOKEN        | Telegram bot token (from [@BotFather](https://t.me/BotFather) bot)         | Yes                                   |         |
+| WEBHOOK_IP            | IP to bind the Telegram webhook to.                                        |                                       | 0.0.0.0 |
+| WEBHOOK_PORT          | Port on which the bot will be listening for requests from Telegram.        | For non-polling telegram interaction  |         |
+| WEBHOOK_URL           | Example: https://<app-name>.herokuapp.com:443                              | For non-polling telegram interaction  |         |
 
 ### Usage example
 
