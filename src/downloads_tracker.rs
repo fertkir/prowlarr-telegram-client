@@ -1,7 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
-use std::sync::Mutex;
 
+use dashmap::DashMap;
 use teloxide::types::ChatId;
 
 #[derive(Eq)]
@@ -23,33 +23,29 @@ impl Hash for User {
 }
 
 pub struct DownloadsTracker {
-    users_by_download: Mutex<HashMap<String, HashSet<User>>> // todo is there a normal lock-free HashMap in rust?
+    users_by_download: DashMap<String, HashSet<User>>
 }
 
 impl DownloadsTracker {
 
     pub fn new() -> DownloadsTracker {
         DownloadsTracker {
-            users_by_download: Mutex::new(HashMap::new())
+            users_by_download: DashMap::new()
         }
     }
 
     pub fn add(&self, hash: String, chat_id: ChatId, locale: String) {
-        let mut users_by_download = self.users_by_download.lock().unwrap();
-        users_by_download.entry(hash)
-            .and_modify(|users| {
-                users.insert(User { chat_id, locale: locale.clone()});
-            })
-            .or_insert_with(|| {
-                let mut set = HashSet::new();
-                set.insert(User { chat_id, locale: locale.clone() });
-                set
-            });
+        // this entry() call should keep a lock during returned value's lifetime:
+        // https://github.com/xacrimon/dashmap/issues/78#issuecomment-633745091
+        self.users_by_download.entry(hash)
+            .or_default()
+            .insert(User { chat_id, locale: locale.clone()});
     }
 
     pub fn remove(&self, hash: String) -> HashSet<User> {
-        let mut users_by_download = self.users_by_download.lock().unwrap();
-        users_by_download.remove(&hash).unwrap_or_default()
+        self.users_by_download.remove(&hash)
+            .map(|entry| entry.1)
+            .unwrap_or_default()
     }
 }
 
