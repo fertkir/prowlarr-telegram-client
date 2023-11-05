@@ -2,7 +2,6 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 use byte_unit::Byte;
-use hightorrent::{MagnetLink, TorrentFile};
 use teloxide::Bot;
 use teloxide::payloads::{SendMessage, SendMessageSetters};
 use teloxide::prelude::{Message, Requester, ResponseResult};
@@ -13,13 +12,15 @@ use teloxide::utils::markdown::bold;
 use teloxide::utils::markdown::link;
 
 use crate::downloads_tracker::DownloadsTracker;
-use crate::prowlarr::{DownloadUrlContent, ProwlarrClient, SearchResult};
-use crate::torrent_data::{TorrentData, TorrentDataStore};
+use crate::prowlarr::{ProwlarrClient, SearchResult};
+use crate::torrent;
+use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
+use crate::torrent::torrent_meta::{TorrentMeta, TorrentMetaStore};
 
 const RESULTS_COUNT: usize = 10;
 
 pub async fn handle(prowlarr: Arc<ProwlarrClient>,
-                    torrent_data_store: Arc<TorrentDataStore>,
+                    torrent_data_store: Arc<TorrentMetaStore>,
                     downloads_tracker: Arc<DownloadsTracker>,
                     allowed_users: Vec<u64>,
                     bot: Bot,
@@ -32,7 +33,7 @@ pub async fn handle(prowlarr: Arc<ProwlarrClient>,
             } else if msg_text.starts_with("/d_") {
                 download(&prowlarr, &torrent_data_store, &downloads_tracker, &bot, &msg, msg_text, &locale).await?;
             } else if msg_text.starts_with("/m_") {
-                get_link(&prowlarr, &torrent_data_store, &bot, &msg, msg_text, &locale).await?;
+                get_link(prowlarr.as_ref(), &torrent_data_store, &bot, &msg, msg_text, &locale).await?;
             } else {
                 bot.send_message(msg.chat.id, t!("help", locale = &locale)).await?;
             }
@@ -51,8 +52,8 @@ fn get_locale(msg: &Message) -> String {
         .unwrap_or_else(|| String::from("en"))
 }
 
-async fn search(prowlarr: &Arc<ProwlarrClient>,
-                torrent_data_store: &Arc<TorrentDataStore>,
+async fn search(prowlarr: &ProwlarrClient,
+                torrent_data_store: &TorrentMetaStore,
                 bot: &Bot,
                 msg: &Message,
                 msg_text: &str,
@@ -64,7 +65,7 @@ async fn search(prowlarr: &Arc<ProwlarrClient>,
                 .iter()
                 .take(RESULTS_COUNT)
                 .map(|search_result| {
-                    let bot_uuid = &torrent_data_store.put(TorrentData {
+                    let bot_uuid = &torrent_data_store.put(TorrentMeta {
                         indexer_id: search_result.indexer_id,
                         download_url: search_result.download_url.clone(),
                         guid: search_result.guid.clone(),
@@ -131,9 +132,9 @@ async fn handle_prowlarr_error(bot: &Bot,
     bot.send_message(msg.chat.id, t!("prowlarr_error", locale = &locale)).await
 }
 
-async fn download(prowlarr: &Arc<ProwlarrClient>,
-                  torrent_data_store: &Arc<TorrentDataStore>,
-                  downloads_tracker: &Arc<DownloadsTracker>,
+async fn download(prowlarr: &ProwlarrClient,
+                  torrent_data_store: &TorrentMetaStore,
+                  downloads_tracker: &DownloadsTracker,
                   bot: &Bot,
                   msg: &Message,
                   msg_text: &str,
@@ -150,7 +151,7 @@ async fn download(prowlarr: &Arc<ProwlarrClient>,
                     if response.status().is_success() {
                         bot.send_message(msg.chat.id, t!("sent_to_download", locale = &locale)).await?;
                         log::info!("userId {} | Sent {} for downloading", msg.chat.id, torrent_data);
-                        match get_torrent_hash(&torrent_data, prowlarr).await {
+                        match torrent::util::get_torrent_hash(&torrent_data, prowlarr).await {
                             Ok(hash) => {
                                 downloads_tracker.add(hash, msg.chat.id, locale.clone());
                             }
@@ -173,38 +174,8 @@ async fn download(prowlarr: &Arc<ProwlarrClient>,
     Ok(())
 }
 
-async fn get_torrent_hash(torrent_data: &TorrentData,
-                          prowlarr: &Arc<ProwlarrClient>) -> Result<String, String> {
-    if torrent_data.magnet_url.is_some() {
-        Ok(MagnetLink::new(torrent_data.magnet_url.as_ref().unwrap())
-            .map_err(|err| err.to_string())?
-            .hash()
-            .to_string())
-    } else if torrent_data.download_url.is_some() {
-        match prowlarr.get_download_url_content(torrent_data.download_url.as_ref().unwrap()).await {
-            Ok(content) => {
-                match content {
-                    DownloadUrlContent::MagnetLink(link) =>
-                        Ok(MagnetLink::new(&link)
-                            .map_err(|err| err.to_string())? // todo add info about where an error occurred
-                            .hash()
-                            .to_string()), // fixme: https://github.com/angrynode/hightorrent/issues/2
-                    DownloadUrlContent::TorrentFile(torrent_file) =>
-                        Ok(TorrentFile::from_slice(torrent_file.as_ref())
-                            .map_err(|err| err.to_string())?
-                            .hash()
-                            .to_string()),
-                }
-            }
-            Err(err) => Err(format!("Error when interacting with Prowlarr: {}", err)),
-        }
-    } else {
-        Err(format!("Neither magnet nor download link exist for torrent {}", torrent_data))
-    }
-}
-
-async fn get_link(prowlarr: &Arc<ProwlarrClient>,
-                  torrent_data_store: &Arc<TorrentDataStore>,
+async fn get_link(download_meta_provider: &impl DownloadMetaProvider,
+                  torrent_data_store: &TorrentMetaStore,
                   bot: &Bot,
                   msg: &Message,
                   msg_text: &str,
@@ -221,14 +192,14 @@ async fn get_link(prowlarr: &Arc<ProwlarrClient>,
                 send_magnet(bot, msg.chat.id, torrent_data.magnet_url.as_ref().unwrap()).await?;
                 log::info!("userId {} | Sent magnet link for {} ", msg.chat.id, &torrent_data);
             } else if torrent_data.download_url.is_some() {
-                match prowlarr.get_download_url_content(torrent_data.download_url.as_ref().unwrap()).await {
+                match download_meta_provider.get_download_meta(torrent_data.download_url.as_ref().unwrap()).await {
                     Ok(content) => {
                         match content {
-                            DownloadUrlContent::MagnetLink(link) => {
+                            DownloadMeta::MagnetLink(link) => {
                                 send_magnet(bot, msg.chat.id, &link).await?;
                                 log::info!("userId {} | Sent magnet link for {} ", msg.chat.id, &torrent_data);
                             }
-                            DownloadUrlContent::TorrentFile(torrent_file) => {
+                            DownloadMeta::TorrentFile(torrent_file) => {
                                 let file = InputFile::memory(torrent_file)
                                     .file_name(format!("{}.torrent", torrent_uuid));
                                 bot.send_document(msg.chat.id, file).await?;

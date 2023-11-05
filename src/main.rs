@@ -10,11 +10,11 @@ use crate::downloads_tracker::DownloadsTracker;
 
 mod prowlarr;
 mod uuid_mapper;
-mod torrent_data;
 mod web_server;
 mod downloads_tracker;
 mod telegram;
 mod util;
+mod torrent;
 
 i18n!("locales", fallback = "en");
 

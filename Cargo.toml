@@ -24,6 +24,7 @@ url = "2.4.1"
 warp = "0.3.6"
 hightorrent = "0.1.0"
 derive_more = "0.99.17"
+async-trait = "0.1.74"
 
 [dev-dependencies]
 temp-env = "0.3.6"

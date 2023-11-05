@@ -1,11 +1,13 @@
 use std::fs;
+use async_trait::async_trait;
 
-use bytes::Bytes;
 use chrono::{DateTime, Utc};
 use reqwest::{Client, Response};
 use reqwest::header::{CONTENT_TYPE, LOCATION};
 use serde::{Deserialize, Serialize};
 use url::Url;
+
+use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
 
 pub struct ProwlarrClient {
     api_key: String,
@@ -27,11 +29,6 @@ pub struct SearchResult {
     pub seeders: u32,
     pub leechers: u32,
     pub grabs: Option<u32>,
-}
-
-pub enum DownloadUrlContent {
-    MagnetLink(String),
-    TorrentFile(Bytes),
 }
 
 #[derive(Serialize)]
@@ -77,9 +74,12 @@ impl ProwlarrClient {
             .send()
             .await
     }
+}
 
-    pub async fn get_download_url_content(&self, download_url: &str) -> Result<DownloadUrlContent, String> {
-        let response = self.client.get(self.replace_base_url(download_url)?)
+#[async_trait]
+impl DownloadMetaProvider for ProwlarrClient {
+    async fn get_download_meta(&self, download_url: &str) -> Result<DownloadMeta, String> {
+        let response = self.client.get(replace_base_url(download_url, &self.base_url)?)
             .send()
             .await
             .map_err(|err| err.to_string())?;
@@ -89,23 +89,23 @@ impl ProwlarrClient {
                 .to_str()
                 .map_err(|err| err.to_string())?
                 .to_string();
-            Ok(DownloadUrlContent::MagnetLink(magnet))
+            Ok(DownloadMeta::MagnetLink(magnet))
         } else if response.status().is_success() {
             let torrent_file = response.bytes()
                 .await
                 .map_err(|err| err.to_string())?;
-            Ok(DownloadUrlContent::TorrentFile(torrent_file))
+            Ok(DownloadMeta::TorrentFile(torrent_file))
         } else {
             Err(format!("Unexpected response status code: {}", response.status()))
         }
     }
+}
 
-    fn replace_base_url(&self, url: &str) -> Result<String, String> {
-        let mut url = Url::parse(url).map_err(|err| err.to_string())?;
-        url.set_host(self.base_url.host_str()).unwrap();
-        url.set_port(self.base_url.port()).unwrap();
-        Ok(url.to_string())
-    }
+fn replace_base_url(url: &str, base_url: &Url) -> Result<String, String> {
+    let mut url = Url::parse(url).map_err(|err| err.to_string())?;
+    url.set_host(base_url.host_str()).unwrap();
+    url.set_port(base_url.port()).unwrap();
+    Ok(url.to_string())
 }
 
 fn get_env(env: &str) -> String {
@@ -270,7 +270,8 @@ mod test {
             use wiremock::{Mock, MockServer, ResponseTemplate};
             use wiremock::matchers::{method, path};
 
-            use crate::prowlarr::{DownloadUrlContent, PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV, ProwlarrClient};
+            use crate::prowlarr::{PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV, ProwlarrClient};
+            use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
 
             const DOWNLOAD_URL: &str = "http://localhost:9696/content";
 
@@ -291,10 +292,10 @@ mod test {
                         (PROWLARR_BASE_URL_ENV, Some(&mock_server.uri()))],
                     ProwlarrClient::from_env);
 
-                let result = prowlarr_client.get_download_url_content(DOWNLOAD_URL).await.unwrap();
+                let result = prowlarr_client.get_download_meta(DOWNLOAD_URL).await.unwrap();
                 match result {
-                    DownloadUrlContent::MagnetLink(link) => assert_eq!(link, magnet_link.to_string()),
-                    DownloadUrlContent::TorrentFile(_) => panic!("torrent file unexpected")
+                    DownloadMeta::MagnetLink(link) => assert_eq!(link, magnet_link.to_string()),
+                    DownloadMeta::TorrentFile(_) => panic!("torrent file unexpected")
                 }
             }
 
@@ -314,10 +315,10 @@ mod test {
                         (PROWLARR_BASE_URL_ENV, Some(&mock_server.uri()))],
                     ProwlarrClient::from_env);
 
-                let result = prowlarr_client.get_download_url_content(DOWNLOAD_URL).await.unwrap();
+                let result = prowlarr_client.get_download_meta(DOWNLOAD_URL).await.unwrap();
                 match result {
-                    DownloadUrlContent::MagnetLink(_) => panic!("magnet link unexpected"),
-                    DownloadUrlContent::TorrentFile(file) => assert_eq!(file, "file contents")
+                    DownloadMeta::MagnetLink(_) => panic!("magnet link unexpected"),
+                    DownloadMeta::TorrentFile(file) => assert_eq!(file, "file contents")
                 }
             }
 
@@ -337,7 +338,7 @@ mod test {
                         (PROWLARR_BASE_URL_ENV, Some(&mock_server.uri()))],
                     ProwlarrClient::from_env);
 
-                prowlarr_client.get_download_url_content(DOWNLOAD_URL).await.unwrap();
+                prowlarr_client.get_download_meta(DOWNLOAD_URL).await.unwrap();
             }
         }
     }
