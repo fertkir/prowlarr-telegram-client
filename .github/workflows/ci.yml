@@ -37,3 +37,8 @@ jobs:
         uses: coverallsapp/github-action@v2
         with:
           fail-on-error: false
+
+  build_docker_image:
+    needs: build_and_test
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/docker-build.yml

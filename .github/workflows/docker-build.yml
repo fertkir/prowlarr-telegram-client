@@ -1,7 +1,8 @@
 name: Docker build & publish
 on:
   workflow_dispatch:
-# todo run on schedule
+  workflow_call:
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
