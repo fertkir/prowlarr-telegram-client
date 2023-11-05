@@ -1,21 +1,17 @@
 use std::fmt::Display;
 use std::sync::Arc;
 
-use byte_unit::Byte;
 use teloxide::Bot;
 use teloxide::payloads::{SendMessage, SendMessageSetters};
 use teloxide::prelude::{Message, Requester, ResponseResult};
 use teloxide::requests::JsonRequest;
 use teloxide::types::{ChatId, InputFile, ParseMode};
-use teloxide::utils::markdown;
-use teloxide::utils::markdown::bold;
-use teloxide::utils::markdown::link;
 
 use crate::downloads_tracker::DownloadsTracker;
 use crate::prowlarr::{ProwlarrClient, SearchResult};
 use crate::torrent;
 use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
-use crate::torrent::torrent_meta::{TorrentMeta, TorrentMetaStore};
+use crate::torrent::torrent_meta::TorrentMetaStore;
 
 const RESULTS_COUNT: usize = 10;
 
@@ -65,13 +61,8 @@ async fn search(prowlarr: &ProwlarrClient,
                 .iter()
                 .take(RESULTS_COUNT)
                 .map(|search_result| {
-                    let bot_uuid = &torrent_data_store.put(TorrentMeta {
-                        indexer_id: search_result.indexer_id,
-                        download_url: search_result.download_url.clone(),
-                        guid: search_result.guid.clone(),
-                        magnet_url: search_result.magnet_url.clone(),
-                    });
-                    create_response(search_result, bot_uuid, locale)
+                    let bot_uuid = torrent_data_store.put(search_result.into());
+                    search_result.to_message(&bot_uuid, locale)
                 })
                 .reduce(|acc, e| acc + &e);
             match response {
@@ -99,21 +90,6 @@ async fn search(prowlarr: &ProwlarrClient,
 fn sorted_by_seeders(mut results: Vec<SearchResult>) -> Vec<SearchResult> {
     results.sort_unstable_by(|a, b| b.seeders.cmp(&a.seeders));
     results
-}
-
-fn create_response(search_result: &SearchResult, bot_uuid: &str, locale: &str) -> String {
-    let downloads = search_result.grabs
-        .map(|grabs| format!("{} {}", t!("downloaded", locale = &locale), grabs))
-        .unwrap_or_default();
-    format!("{}\n{}\nS {} \\| L {} \\| {} \\| {} {} \\| {} {}\n{}: /d\\_{}\n{}: /m\\_{}\n\n",
-            markdown::escape(&search_result.title),
-            link(&search_result.info_url, &t!("description", locale = &locale)),
-            search_result.seeders, search_result.leechers, downloads, &t!("registered", locale = &locale),
-            markdown::escape(&search_result.publish_date.date_naive().to_string()),
-            &t!("size", locale = &locale),
-            markdown::escape(&Byte::from_bytes(search_result.size).get_appropriate_unit(false).to_string()),
-            bold(&t!("download", locale = &locale)), bot_uuid,
-            markdown::escape(&t!("get_link", locale = &locale)), bot_uuid)
 }
 
 fn to_digest(str: &str) -> String {
