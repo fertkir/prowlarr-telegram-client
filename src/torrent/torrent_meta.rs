@@ -30,7 +30,7 @@ impl TorrentMeta {
                             Ok(MagnetLink::new(&link)
                                 .map_err(|err| err.to_string())? // todo add info about where an error occurred
                                 .hash()
-                                .to_string()), // fixme: https://github.com/angrynode/hightorrent/issues/2
+                                .to_string()),
                         DownloadMeta::TorrentFile(torrent_file) =>
                             Ok(TorrentFile::from_slice(torrent_file.as_ref())
                                 .map_err(|err| err.to_string())?
@@ -49,11 +49,11 @@ impl TorrentMeta {
 #[cfg(test)]
 mod tests {
     use bytes::Bytes;
-    use crate::torrent::download_meta::{DownloadMeta, MockDownloadMetaProvider};
-    use crate::torrent::torrent_meta::TorrentMeta;
     use mockall::{predicate::*};
 
-    #[ignore = "Until https://github.com/fertkir/prowlarr-telegram-client/issues/4 is fixed"]
+    use crate::torrent::download_meta::{DownloadMeta, MockDownloadMetaProvider};
+    use crate::torrent::torrent_meta::TorrentMeta;
+
     #[tokio::test]
     async fn magnet_link_from_torrent_meta() {
         let meta_provider = MockDownloadMetaProvider::new();
@@ -71,7 +71,6 @@ mod tests {
         assert_eq!(hash, "c811b41641a09d192b8ed81b14064fff55d85ce3");
     }
 
-    #[ignore = "Until https://github.com/fertkir/prowlarr-telegram-client/issues/4 is fixed"]
     #[tokio::test]
     async fn magnet_link_from_provider() {
         let mut meta_provider = MockDownloadMetaProvider::new();

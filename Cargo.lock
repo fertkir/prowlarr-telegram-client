@@ -871,8 +871,7 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 [[package]]
 name = "hightorrent"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8eacd39e0b6b4f12314528239577642edcdfe7430d5ce2b648d8868c99863a4"
+source = "git+https://github.com/fertkir/hightorrent/#f31fa2525a08ceee13231a7f70d8ad232d055a43"
 dependencies = [
  "bt_bencode",
  "rustc-hex",
