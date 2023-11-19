@@ -6,6 +6,7 @@ use reqwest::{Client, Response};
 use reqwest::header::{CONTENT_TYPE, LOCATION};
 use serde::{Deserialize, Serialize};
 use url::Url;
+use crate::core::ext::link_provider::{Link, LinkProvider, LinkResult};
 
 use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
 
@@ -77,9 +78,9 @@ impl ProwlarrClient {
 }
 
 #[async_trait]
-impl DownloadMetaProvider for ProwlarrClient {
-    async fn get_download_meta(&self, download_url: &str) -> Result<DownloadMeta, String> {
-        let response = self.client.get(replace_base_url(download_url, &self.base_url)?)
+impl LinkProvider<String> for ProwlarrClient {
+    async fn get_link(&self, meta: &String) -> LinkResult {
+        let response = self.client.get(replace_base_url(meta, &self.base_url)?)
             .send()
             .await
             .map_err(|err| err.to_string())?;
@@ -89,12 +90,12 @@ impl DownloadMetaProvider for ProwlarrClient {
                 .to_str()
                 .map_err(|err| err.to_string())?
                 .to_string();
-            Ok(DownloadMeta::MagnetLink(magnet))
+            Ok(Link::MagnetLink(magnet))
         } else if response.status().is_success() {
             let torrent_file = response.bytes()
                 .await
                 .map_err(|err| err.to_string())?;
-            Ok(DownloadMeta::TorrentFile(torrent_file))
+            Ok(Link::TorrentFile(torrent_file))
         } else {
             Err(format!("Unexpected response status code: {}", response.status()))
         }

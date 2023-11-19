@@ -9,12 +9,11 @@ use teloxide::Bot;
 use crate::downloads_tracker::DownloadsTracker;
 
 mod prowlarr;
-mod uuid_mapper;
 mod web_server;
-mod downloads_tracker;
 mod telegram;
 mod util;
 mod torrent;
+mod core;
 
 i18n!("locales", fallback = "en");
 

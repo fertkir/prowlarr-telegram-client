@@ -6,6 +6,8 @@ use teloxide::dispatching::{Dispatcher, UpdateFilterExt};
 use teloxide::error_handlers::LoggingErrorHandler;
 use teloxide::prelude::Update;
 use teloxide::update_listeners::webhooks;
+use crate::core::input_handler::InputHandler;
+use crate::core::permissions::PermissionChecker;
 
 use crate::downloads_tracker::DownloadsTracker;
 use crate::prowlarr::ProwlarrClient;
@@ -16,6 +18,18 @@ use crate::util;
 pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
     log::info!("Starting torrents bot...");
 
+    let h = InputHandler {
+        permission_checker: PermissionChecker {
+            allowed_users: get_allowed_users(),
+        },
+        searcher: Box::new(()),
+        downloader: Box::new(()),
+        link_provider: Box::new(()),
+        uuid_mapper: ,
+        sender: Box::new(()),
+        search_response_formatter: Box::new(()),
+        downloads_tracker: (),
+    }
     let handler = dptree::entry()
         .branch(Update::filter_message().endpoint(message_handler::handle));
 

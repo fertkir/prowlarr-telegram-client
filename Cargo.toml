@@ -26,6 +26,7 @@ warp = "0.3.6"
 hightorrent = { git = "https://github.com/fertkir/hightorrent/" }
 derive_more = "0.99.17"
 async-trait = "0.1.74"
+uuid = { version = "1.5.0", features = ["v4"] }
 
 [dev-dependencies]
 temp-env = "0.3.6"

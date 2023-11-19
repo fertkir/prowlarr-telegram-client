@@ -38,9 +38,15 @@ no_results:
 download_complete:
   en: Downloaded "%{name}"
   ru: Завершена загрузка "%{name}"
-prowlarr_error:
-  en: Search/downloads aren't available. Please contact support.
-  ru: Поиск/скачивание недоступны. Пожалуйста, обратитесь в поддержку.
+search_provider_error:
+  en: Search isn't available. Please contact support.
+  ru: Поиск недоступен. Пожалуйста, обратитесь в поддержку.
+download_provider_error:
+  en: Downloads aren't available. Please contact support.
+  ru: Скачивание недоступно. Пожалуйста, обратитесь в поддержку.
+link_provider_error:
+  en: Links aren't available. Please contact support.
+  ru: Получение ссылок недоступно. Пожалуйста, обратитесь в поддержку.
 link_not_found:
   en: Could not find the link, probably it's out of date. Please repeat your search to get new links.
   ru: Не удалось найти ссылку, возможно она устарела. Пожалуйста, повторите поиск, чтобы получить обновленные ссылки.

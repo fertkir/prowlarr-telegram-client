@@ -1,8 +1,8 @@
 use derive_more::Display;
 use hightorrent::{MagnetLink, TorrentFile};
+use crate::core::ext::uuid_mapper::UuidMapper;
 
 use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
-use crate::uuid_mapper::UuidMapper;
 
 #[derive(Clone, Display)]
 #[display(fmt = "{{ indexer_id: {}, guid: {} }}", indexer_id, guid)]

@@ -1,26 +1,27 @@
 use byte_unit::Byte;
 use teloxide::utils::markdown::{bold, escape, link};
 
+use crate::core::ext::search_response::{SearchResponse, SearchResponseFormatter};
 use crate::prowlarr::SearchResult;
 use crate::torrent::torrent_meta::TorrentMeta;
 
-impl SearchResult {
-    pub fn to_message(&self, bot_uuid: &str, locale: &str) -> String {
-        format!("{}\n{}\nS {} \\| L {} \\| {} \\| {} {} \\| {} {}\n{}: /d\\_{}\n{}: /m\\_{}\n\n",
-                escape(&self.title),
-                link(&self.info_url, &t!("description", locale = &locale)),
-                self.seeders, self.leechers, self.downloads(locale), &t!("registered", locale = &locale),
-                escape(&self.publish_date.date_naive().to_string()),
-                &t!("size", locale = &locale),
-                escape(&Byte::from_bytes(self.size).get_appropriate_unit(false).to_string()),
-                bold(&t!("download", locale = &locale)), bot_uuid,
-                escape(&t!("get_link", locale = &locale)), bot_uuid)
-    }
+pub struct TelegramSearchResponseFormatter;
 
-    fn downloads(&self, locale: &str) -> String {
-        self.grabs
+impl SearchResponseFormatter for TelegramSearchResponseFormatter {
+
+    fn format(&self, response: &SearchResponse, uuid: &String, locale: &str) -> String {
+        let downloads = response.downloads
             .map(|grabs| format!("{} {}", t!("downloaded", locale = &locale), grabs))
-            .unwrap_or_default()
+            .unwrap_or_default();
+        format!("{}\n{}\nS {} \\| L {} \\| {} \\| {} {} \\| {} {}\n{}: /d\\_{}\n{}: /m\\_{}\n\n",
+                escape(&response.title),
+                link(&response.info_url, &t!("description", locale = &locale)),
+                response.seeders, response.leechers, downloads, &t!("registered", locale = &locale),
+                escape(&response.publish_date.date_naive().to_string()),
+                &t!("size", locale = &locale),
+                escape(&Byte::from_bytes(response.size).get_appropriate_unit(false).to_string()),
+                bold(&t!("download", locale = &locale)), uuid,
+                escape(&t!("get_link", locale = &locale)), uuid)
     }
 }
 

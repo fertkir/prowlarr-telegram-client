@@ -43,7 +43,7 @@ impl<V: Clone> UuidMapper<V> {
 
 #[cfg(test)]
 mod tests {
-    use crate::uuid_mapper::UuidMapper;
+    use crate::core::ext::uuid_mapper::UuidMapper;
 
     #[test]
     fn get_same_value_multiple_times() {
