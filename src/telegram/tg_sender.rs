@@ -1,9 +1,9 @@
 use async_trait::async_trait;
+use bytes::Bytes;
 use teloxide::Bot;
 use teloxide::payloads::SendMessageSetters;
 use teloxide::prelude::Requester;
 use teloxide::types::{InputFile, ParseMode};
-use uuid::Bytes;
 
 use crate::core::ext::error::{HandlingError, HandlingResult};
 use crate::core::ext::input::Destination;
