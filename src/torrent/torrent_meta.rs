@@ -2,7 +2,7 @@ use derive_more::Display;
 use hightorrent::{MagnetLink, TorrentFile};
 
 use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
-use crate::uuid_mapper::UuidMapper;
+use crate::in_memory_uuid_mapper::InMemoryUuidMapper;
 
 #[derive(Clone, Display)]
 #[display(fmt = "{{ indexer_id: {}, guid: {} }}", indexer_id, guid)]
@@ -13,7 +13,7 @@ pub struct TorrentMeta {
     pub magnet_url: Option<String>,
 }
 
-pub type TorrentMetaStore = UuidMapper<TorrentMeta>;
+pub type TorrentMetaStore = InMemoryUuidMapper<TorrentMeta>;
 
 impl TorrentMeta {
     pub async fn get_torrent_hash(&self, download_meta_provider: &impl DownloadMetaProvider) -> Result<String, String> {

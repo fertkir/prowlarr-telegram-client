@@ -9,7 +9,7 @@ use teloxide::Bot;
 use crate::downloads_tracker::DownloadsTracker;
 
 mod prowlarr;
-mod uuid_mapper;
+mod in_memory_uuid_mapper;
 mod web_server;
 mod downloads_tracker;
 mod telegram;

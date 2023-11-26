@@ -56,13 +56,19 @@ async fn search(prowlarr: &ProwlarrClient,
     log::info!("userId {} | Received search request \"{}\"", msg.chat.id, msg_text);
     match prowlarr.search(msg_text).await {
         Ok(results) => {
-            let response = sorted_by_seeders(results)
-                .iter()
+            let first_n_sorted_results: Vec<SearchResult> = sorted_by_seeders(results)
+                .into_iter()
                 .take(RESULTS_COUNT)
-                .map(|search_result| {
-                    let bot_uuid = torrent_data_store.put(search_result.into());
-                    search_result.to_message(&bot_uuid, locale)
-                })
+                .collect();
+            let bot_uuids = torrent_data_store.put_all(first_n_sorted_results
+                .iter()
+                .map(|a| a.into())
+                .collect());
+            let response = first_n_sorted_results
+                .iter()
+                .enumerate()
+                .map(|(index, search_result)|
+                    search_result.to_message(&bot_uuids[index], locale))
                 .reduce(|acc, e| acc + &e);
             match response {
                 None => {
