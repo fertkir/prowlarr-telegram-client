@@ -10,12 +10,13 @@ use teloxide::types::{ChatId, InputFile, ParseMode};
 use crate::downloads_tracker::DownloadsTracker;
 use crate::prowlarr::{ProwlarrClient, SearchResult};
 use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
-use crate::torrent::torrent_meta::TorrentMetaStore;
+use crate::torrent::torrent_meta::TorrentMeta;
+use crate::uuid_mapper::UuidMapper;
 
 const RESULTS_COUNT: usize = 10;
 
 pub async fn handle(prowlarr: Arc<ProwlarrClient>,
-                    torrent_data_store: Arc<TorrentMetaStore>,
+                    torrent_data_store: Arc<dyn UuidMapper<TorrentMeta>>,
                     downloads_tracker: Arc<DownloadsTracker>,
                     allowed_users: Vec<u64>,
                     bot: Bot,
@@ -24,11 +25,11 @@ pub async fn handle(prowlarr: Arc<ProwlarrClient>,
         if let Some(msg_text) = msg.text() {
             let locale = get_locale(&msg);
             if !msg_text.starts_with('/') {
-                search(&prowlarr, &torrent_data_store, &bot, &msg, msg_text, &locale).await?;
+                search(&prowlarr, torrent_data_store, &bot, &msg, msg_text, &locale).await?;
             } else if msg_text.starts_with("/d_") {
-                download(&prowlarr, &torrent_data_store, &downloads_tracker, &bot, &msg, msg_text, &locale).await?;
+                download(&prowlarr, torrent_data_store, &downloads_tracker, &bot, &msg, msg_text, &locale).await?;
             } else if msg_text.starts_with("/m_") {
-                get_link(prowlarr.as_ref(), &torrent_data_store, &bot, &msg, msg_text, &locale).await?;
+                get_link(prowlarr.as_ref(), torrent_data_store, &bot, &msg, msg_text, &locale).await?;
             } else {
                 bot.send_message(msg.chat.id, t!("help", locale = &locale)).await?;
             }
@@ -48,7 +49,7 @@ fn get_locale(msg: &Message) -> String {
 }
 
 async fn search(prowlarr: &ProwlarrClient,
-                torrent_data_store: &TorrentMetaStore,
+                torrent_data_store: Arc<dyn UuidMapper<TorrentMeta>>,
                 bot: &Bot,
                 msg: &Message,
                 msg_text: &str,
@@ -63,7 +64,7 @@ async fn search(prowlarr: &ProwlarrClient,
             let bot_uuids = torrent_data_store.put_all(first_n_sorted_results
                 .iter()
                 .map(|a| a.into())
-                .collect());
+                .collect()).await;
             let response = first_n_sorted_results
                 .iter()
                 .enumerate()
@@ -114,14 +115,14 @@ async fn handle_prowlarr_error(bot: &Bot,
 }
 
 async fn download(prowlarr: &ProwlarrClient,
-                  torrent_data_store: &TorrentMetaStore,
+                  torrent_data_store: Arc<dyn UuidMapper<TorrentMeta>>,
                   downloads_tracker: &DownloadsTracker,
                   bot: &Bot,
                   msg: &Message,
                   msg_text: &str,
                   locale: &String) -> ResponseResult<()> {
     log::info!("userId {} | Received download request for {}", msg.chat.id, msg_text);
-    match torrent_data_store.get(&msg_text[3..]) {
+    match torrent_data_store.get(&msg_text[3..]).await {
         None => {
             log::warn!("userId {} | Link {} expired", msg.chat.id, msg_text);
             bot.send_message(msg.chat.id, t!("link_not_found", locale = &locale)).await?;
@@ -156,14 +157,14 @@ async fn download(prowlarr: &ProwlarrClient,
 }
 
 async fn get_link(download_meta_provider: &impl DownloadMetaProvider,
-                  torrent_data_store: &TorrentMetaStore,
+                  torrent_data_store: Arc<dyn UuidMapper<TorrentMeta>>,
                   bot: &Bot,
                   msg: &Message,
                   msg_text: &str,
                   locale: &String) -> ResponseResult<()> {
     log::info!("userId {} | Received get link request for {}", msg.chat.id, msg_text);
     let torrent_uuid = &msg_text[3..];
-    match torrent_data_store.get(torrent_uuid) {
+    match torrent_data_store.get(torrent_uuid).await {
         None => {
             log::warn!("userId {} | Link {} expired", msg.chat.id, msg_text);
             bot.send_message(msg.chat.id, t!("link_not_found", locale = &locale)).await?;
