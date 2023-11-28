@@ -1,4 +1,5 @@
 use byte_unit::Byte;
+use byte_unit::UnitType::Decimal;
 use teloxide::utils::markdown::{bold, escape, link};
 
 use crate::prowlarr::SearchResult;
@@ -11,8 +12,7 @@ impl SearchResult {
                 link(&self.info_url, &t!("description", locale = &locale)),
                 self.seeders, self.leechers, self.downloads(locale), &t!("registered", locale = &locale),
                 escape(&self.publish_date.date_naive().to_string()),
-                &t!("size", locale = &locale),
-                escape(&Byte::from_bytes(self.size).get_appropriate_unit(false).to_string()),
+                &t!("size", locale = &locale), &self.size(),
                 bold(&t!("download", locale = &locale)), bot_uuid,
                 escape(&t!("get_link", locale = &locale)), bot_uuid)
     }
@@ -21,6 +21,14 @@ impl SearchResult {
         self.grabs
             .map(|grabs| format!("{} {}", t!("downloaded", locale = &locale), grabs))
             .unwrap_or_default()
+    }
+
+    fn size(&self) -> String {
+        let size = Byte::from_u128(self.size)
+            .map(|b| b.get_appropriate_unit(Decimal))
+            .map(|b| format!("{b:#.2}"))
+            .unwrap_or_else(|| "???".to_string());
+        escape(&size)
     }
 }
 
