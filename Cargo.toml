@@ -8,9 +8,7 @@ repository = "https://github.com/fertkir/prowlarr-telegram-client"
 keywords = ["torrents", "telegram-bot", "prowlarr"]
 
 [features]
-default = [
-    "redis-storage"
-]
+default = []
 redis-storage = ["redis", "serde_json"]
 
 [dependencies]
