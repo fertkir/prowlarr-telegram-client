@@ -61,25 +61,25 @@ mod tests {
     #[tokio::test]
     async fn get_same_value_multiple_times() {
         let mapper = InMemoryUuidMapper::<String>::new();
-        let keys = mapper.put_all(vec!["value 1".to_string()]).await;
+        let keys = mapper.put_all(vec!["value 1".to_string()]).await.unwrap();
 
-        assert_eq!(mapper.get(&keys[0]).await, Some("value 1".to_string()));
-        assert_eq!(mapper.get(&keys[0]).await, Some("value 1".to_string()));
+        assert_eq!(mapper.get(&keys[0]).await.unwrap(), Some("value 1".to_string()));
+        assert_eq!(mapper.get(&keys[0]).await.unwrap(), Some("value 1".to_string()));
     }
 
     #[tokio::test]
     async fn put_and_get_different_values() {
         let mapper = InMemoryUuidMapper::<String>::new();
-        let keys = mapper.put_all(vec!["value 1".to_string(), "value 2".to_string()]).await;
+        let keys = mapper.put_all(vec!["value 1".to_string(), "value 2".to_string()]).await.unwrap();
 
-        assert_eq!(mapper.get(&keys[0]).await, Some("value 1".to_string()));
-        assert_eq!(mapper.get(&keys[1]).await, Some("value 2".to_string()));
+        assert_eq!(mapper.get(&keys[0]).await.unwrap(), Some("value 1".to_string()));
+        assert_eq!(mapper.get(&keys[1]).await.unwrap(), Some("value 2".to_string()));
     }
 
     #[tokio::test]
     async fn get_none_if_key_is_unknown() {
         let mapper = InMemoryUuidMapper::<String>::new();
 
-        assert_eq!(mapper.get("key1").await, None);
+        assert_eq!(mapper.get("key1").await.unwrap(), None);
     }
 }
