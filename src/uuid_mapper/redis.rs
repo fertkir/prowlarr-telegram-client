@@ -26,7 +26,7 @@ impl<V: Serialize + Sync + Send + DeserializeOwned> UuidMapper<V> for RedisUuidM
             .map(|value| serde_json::to_string(value).unwrap())  // todo no unwrap
             .collect();
         let mut con = self.client.get_async_connection().await?;
-        let seq: usize = con.incr("uuid-mapper:sequence", values.len()).await?;
+        let seq: usize = con.incr("uuid-mapper:sequence", values.len()).await?; // todo do not start with 1
         let offset = seq - values.len();
         let x: Vec<(String, String)> = serialized_values.into_iter().enumerate()
             .map(|(index, value)| (format!("uuid-mapper:uuid:{}", (offset + index)), value))
