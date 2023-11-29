@@ -1,9 +1,10 @@
 use derive_more::Display;
 use hightorrent::{MagnetLink, TorrentFile};
+use serde::{Deserialize, Serialize};
 
 use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
 
-#[derive(Clone, Display)]
+#[derive(Clone, Display, Serialize, Deserialize)]
 #[display(fmt = "{{ indexer_id: {}, guid: {} }}", indexer_id, guid)]
 pub struct TorrentMeta {
     pub guid: String,

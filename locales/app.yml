@@ -41,6 +41,9 @@ download_complete:
 prowlarr_error:
   en: Search/downloads aren't available. Please contact support.
   ru: Поиск/скачивание недоступны. Пожалуйста, обратитесь в поддержку.
+mapper_error:
+  en: Cannot save/get a link. Please contact support.
+  ru: Не удалось сохранить/получить ссылку. Пожалуйста, обратитесь в поддержку.
 link_not_found:
   en: Could not find the link, probably it's out of date. Please repeat your search to get new links.
   ru: Не удалось найти ссылку, возможно она устарела. Пожалуйста, повторите поиск, чтобы получить обновленные ссылки.

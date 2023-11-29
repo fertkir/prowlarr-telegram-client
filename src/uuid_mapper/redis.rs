@@ -1,29 +1,61 @@
 use async_trait::async_trait;
+use redis::{AsyncCommands, RedisError};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
+use serde_json::Error;
 
-use crate::uuid_mapper::UuidMapper;
+use crate::uuid_mapper::{MapperError, UuidMapper};
 
-pub struct RedisUuidMapper<V> {
-    value: Vec<V>,
+pub struct RedisUuidMapper {
     client: redis::Client
 }
 
-impl<V> RedisUuidMapper<V> {
+impl RedisUuidMapper {
 
-    pub fn new(url: &str) -> Result<RedisUuidMapper<V>, String> {
+    pub fn new(url: &str) -> Result<RedisUuidMapper, String> {
         Ok(RedisUuidMapper {
-            value: Vec::new(),
             client: redis::Client::open(url).map_err(|e|e.to_string())?
         })
     }
 }
 
 #[async_trait]
-impl<V: Sync + Send> UuidMapper<V> for RedisUuidMapper<V> {
-    async fn put_all(&self, values: Vec<V>) -> Vec<String> {
-        todo!()
+impl<V: Serialize + Sync + Send + DeserializeOwned> UuidMapper<V> for RedisUuidMapper {
+    async fn put_all(&self, values: Vec<V>) -> Result<Vec<String>, MapperError> where V: 'async_trait {
+        let serialized_values: Vec<String> = values.iter()
+            .map(|value| serde_json::to_string(value).unwrap())  // todo no unwrap
+            .collect();
+        let mut con = self.client.get_async_connection().await?;
+        let seq: usize = con.incr("uuid-mapper:sequence", values.len()).await?;
+        let offset = seq - values.len();
+        let x: Vec<(String, String)> = serialized_values.into_iter().enumerate()
+            .map(|(index, value)| (format!("uuid-mapper:uuid:{}", (offset + index)), value))
+            .collect();
+        con.mset(&x).await?;
+        Ok((offset..(values.len() + offset)).map(|a|a.to_string()).collect())
     }
 
-    async fn get(&self, bot_uuid: &str) -> Option<V> {
-        todo!()
+    async fn get(&self, bot_uuid: &str) -> Result<Option<V>, MapperError> {
+        let mut con = self.client.get_async_connection().await?;
+        let x: Option<String> = con.get(format!("uuid-mapper:uuid:{}", bot_uuid)).await?;
+        match x {
+            None => Ok(None),
+            Some(x) => {
+                let option = serde_json::from_str(&x)?;
+                Ok(option)
+            }
+        }
+    }
+}
+
+impl From<RedisError> for MapperError {
+    fn from(value: RedisError) -> Self {
+        MapperError::Err(value.to_string())
+    }
+}
+
+impl From<Error> for MapperError {
+    fn from(value: Error) -> Self {
+        MapperError::Err(value.to_string())
     }
 }

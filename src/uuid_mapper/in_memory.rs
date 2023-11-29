@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use dashmap::DashMap;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
-use crate::uuid_mapper::UuidMapper;
+use crate::uuid_mapper::{MapperError, UuidMapper};
 
 pub struct InMemoryUuidMapper<V: Clone> {
     session_key: String,
@@ -42,14 +42,14 @@ impl<V: Clone> InMemoryUuidMapper<V> {
 #[async_trait]
 impl<V: Clone + Sync + Send> UuidMapper<V> for InMemoryUuidMapper<V> {
 
-    async fn put_all(&self, values: Vec<V>) -> Vec<String> {
-        values.into_iter()
+    async fn put_all(&self, values: Vec<V>) -> Result<Vec<String>, MapperError> {
+        Ok(values.into_iter()
             .map(|v| self.put(v))
-            .collect()
+            .collect())
     }
 
-    async fn get(&self, bot_uuid: &str) -> Option<V> {
-        self.map.get(bot_uuid).map(|e| e.value().clone())
+    async fn get(&self, bot_uuid: &str) -> Result<Option<V>, MapperError> {
+        Ok(self.map.get(bot_uuid).map(|e| e.value().clone()))
     }
 }
 
