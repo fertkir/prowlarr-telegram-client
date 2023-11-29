@@ -7,37 +7,60 @@ use serde_json::Error;
 use crate::uuid_mapper::{MapperError, UuidMapper};
 
 pub struct RedisUuidMapper {
-    client: redis::Client
+    client: redis::Client,
+    sequence_start: usize,
+    key_expiration: usize
 }
+
+const REDIS_SEQUENCE_START_ENV: &str = "REDIS_SEQUENCE_START";
+const REDIS_KEY_EXPIRATION_ENV: &str = "REDIS_KEY_EXPIRATION";
+const ONE_WEEK: &str = "604800";
+const DEFAULT_SEQUENCE_START: &str = "1000";
+const SEQUENCE_KEY: &str = "uuid-mapper:sequence";
+const UUID_KEY_PREFIX: &str = "uuid-mapper:uuid";
 
 impl RedisUuidMapper {
 
     pub fn new(url: &str) -> Result<RedisUuidMapper, String> {
         Ok(RedisUuidMapper {
-            client: redis::Client::open(url).map_err(|e|e.to_string())?
+            client: redis::Client::open(url)
+                .map_err(|e|e.to_string())?,
+            sequence_start: std::env::var(REDIS_SEQUENCE_START_ENV)
+                .unwrap_or_else(|_| DEFAULT_SEQUENCE_START.to_string())
+                .parse()
+                .unwrap_or_else(|_| panic!("{REDIS_SEQUENCE_START_ENV} must be integer")),
+            key_expiration: std::env::var(REDIS_KEY_EXPIRATION_ENV)
+                .unwrap_or_else(|_| ONE_WEEK.to_string())
+                .parse()
+                .unwrap_or_else(|_| panic!("{REDIS_KEY_EXPIRATION_ENV} must be integer"))
         })
     }
 }
 
+
 #[async_trait]
 impl<V: Serialize + Sync + Send + DeserializeOwned> UuidMapper<V> for RedisUuidMapper {
     async fn put_all(&self, values: Vec<V>) -> Result<Vec<String>, MapperError> where V: 'async_trait {
-        let serialized_values: Vec<String> = values.iter()
-            .map(|value| serde_json::to_string(value).unwrap())  // todo no unwrap
-            .collect();
         let mut con = self.client.get_async_connection().await?;
-        let seq: usize = con.incr("uuid-mapper:sequence", values.len()).await?; // todo do not start with 1
-        let offset = seq - values.len();
-        let x: Vec<(String, String)> = serialized_values.into_iter().enumerate()
-            .map(|(index, value)| (format!("uuid-mapper:uuid:{}", (offset + index)), value))
-            .collect();
-        con.mset(&x).await?; // todo set expiration: https://github.com/redis/ioredis/issues/1133#issuecomment-630351474
+        let seq: Vec<usize> = redis::pipe().atomic()
+            .set_nx(SEQUENCE_KEY, self.sequence_start.to_string()).ignore()
+            .incr(SEQUENCE_KEY, values.len())
+            .query_async(&mut con).await?;
+        let offset = seq[0] - values.len();
+        let mut pipe = redis::pipe();
+        pipe.atomic();
+        for (index, value) in values.iter().enumerate() {
+            let key = format!("{}:{}", UUID_KEY_PREFIX, offset + index);
+            let value = serde_json::to_string(value)?;
+            pipe.set_ex(key, value, self.key_expiration).ignore();
+        }
+        pipe.query_async(&mut con).await?;
         Ok((offset..(values.len() + offset)).map(|a|a.to_string()).collect())
     }
 
     async fn get(&self, bot_uuid: &str) -> Result<Option<V>, MapperError> {
         let mut con = self.client.get_async_connection().await?;
-        let x: Option<String> = con.get(format!("uuid-mapper:uuid:{}", bot_uuid)).await?;
+        let x: Option<String> = con.get(format!("{}:{}", UUID_KEY_PREFIX, bot_uuid)).await?;
         match x {
             None => Ok(None),
             Some(x) => {
