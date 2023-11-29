@@ -31,7 +31,7 @@ impl<V: Serialize + Sync + Send + DeserializeOwned> UuidMapper<V> for RedisUuidM
         let x: Vec<(String, String)> = serialized_values.into_iter().enumerate()
             .map(|(index, value)| (format!("uuid-mapper:uuid:{}", (offset + index)), value))
             .collect();
-        con.mset(&x).await?;
+        con.mset(&x).await?; // todo set expiration: https://github.com/redis/ioredis/issues/1133#issuecomment-630351474
         Ok((offset..(values.len() + offset)).map(|a|a.to_string()).collect())
     }
 
