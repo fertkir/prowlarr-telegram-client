@@ -21,9 +21,9 @@ dashmap = "5.5.3"
 rand = "0.8.5"
 bytes = "1.5.0"
 url = "2.5.0"
-warp = "0.3.6"
 # todo replace with the package when https://github.com/angrynode/hightorrent/issues/2 is fixed:
 hightorrent = { git = "https://github.com/fertkir/hightorrent/" }
+warp = "0.3.6"
 derive_more = "0.99.17"
 async-trait = "0.1.74"
 
