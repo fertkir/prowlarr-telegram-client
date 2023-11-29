@@ -7,11 +7,11 @@ use teloxide::error_handlers::LoggingErrorHandler;
 use teloxide::prelude::Update;
 use teloxide::update_listeners::webhooks;
 
+use crate::{util, uuid_mapper};
 use crate::downloads_tracker::DownloadsTracker;
 use crate::prowlarr::ProwlarrClient;
 use crate::telegram::message_handler;
-use crate::torrent::torrent_meta::TorrentMetaStore;
-use crate::util;
+use crate::torrent::torrent_meta::TorrentMeta;
 
 pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
     log::info!("Starting torrents bot...");
@@ -22,7 +22,7 @@ pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
     let mut dispatcher = Dispatcher::builder(bot.clone(), handler)
         .dependencies(dptree::deps![
             Arc::new(ProwlarrClient::from_env()),
-            Arc::new(TorrentMetaStore::new()),
+            uuid_mapper::create_arc::<TorrentMeta>(),
             downloads_tracker,
             get_allowed_users()])
         .enable_ctrlc_handler()

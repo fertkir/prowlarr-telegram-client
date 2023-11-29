@@ -7,6 +7,12 @@ authors = ["Kirill Fertikov"]
 repository = "https://github.com/fertkir/prowlarr-telegram-client"
 keywords = ["torrents", "telegram-bot", "prowlarr"]
 
+[features]
+default = [
+    "redis-storage"
+]
+redis-storage = ["redis", "serde_json"]
+
 [dependencies]
 teloxide = { version = "0.12.2", features = ["webhooks", "webhooks-axum"] }
 tokio = { version = "1.34.0", features = ["rt-multi-thread", "macros"] }
@@ -26,6 +32,8 @@ warp = "0.3.6"
 hightorrent = { git = "https://github.com/fertkir/hightorrent/" }
 derive_more = "0.99.17"
 async-trait = "0.1.74"
+redis = { version = "0.23.3", features = ["tokio-comp"], optional = true }
+serde_json = { version = "1.0.107", features = [], optional = true }
 
 [dev-dependencies]
 temp-env = "0.3.6"
