@@ -36,5 +36,5 @@ serde_json = { version = "1.0.107", features = [], optional = true }
 [dev-dependencies]
 temp-env = "0.3.6"
 tempfile = "3.8.1"
-wiremock = "0.5.21"
+wiremock = "0.5.22"
 mockall = "0.11.4"
