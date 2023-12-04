@@ -31,7 +31,7 @@ hightorrent = { git = "https://github.com/fertkir/hightorrent/" }
 derive_more = "0.99.17"
 async-trait = "0.1.74"
 redis = { version = "0.23.3", features = ["tokio-comp"], optional = true }
-serde_json = { version = "1.0.107", features = [], optional = true }
+serde_json = { version = "1.0.108", features = [], optional = true }
 
 [dev-dependencies]
 temp-env = "0.3.6"
