@@ -3,12 +3,11 @@ use std::sync::Arc;
 
 use derive_more::Display;
 use serde::Deserialize;
-use teloxide::Bot;
-use teloxide::prelude::Requester;
 use tokio::task;
 use warp::Filter;
 use warp::reply::WithStatus;
 
+use crate::core::ext::sender::Sender;
 use crate::downloads_tracker::DownloadsTracker;
 use crate::util;
 
@@ -19,13 +18,13 @@ struct CompletionRequest {
     name: String
 }
 
-pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
+pub async fn run(sender: Arc<dyn Sender>, downloads_tracker: Arc<DownloadsTracker>) {
     if let Ok(port) = std::env::var("COMPLETE_PORT") {
         let filter = warp::put()
             .and(warp::path("complete"))
             .and(warp::body::json())
             .and(warp::any().map(move || downloads_tracker.clone()))
-            .and(warp::any().map(move || bot.clone()))
+            .and(warp::any().map(move || sender.clone()))
             .then(completion);
         let addr = SocketAddr::new(util::parse_ip("COMPLETE_IP"), port.parse().unwrap());
         let (_, fut) = warp::serve(filter)
@@ -42,20 +41,20 @@ pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
 
 async fn completion(request: CompletionRequest,
                     downloads_tracker: Arc<DownloadsTracker>,
-                    bot: Bot) -> WithStatus<String> {
+                    sender: Arc<dyn Sender>) -> WithStatus<String> {
     log::info!("Received download completion notification for {}", request);
     for user in downloads_tracker.remove(request.hash).iter() {
-        let bot = bot.clone();
+        let sender = sender.clone();
         let download_name = request.name.clone();
-        let chat_id = user.chat_id;
+        let chat_id = user.destination;
         let locale = user.locale.clone();
         task::spawn(async move {
-            match bot.send_message(chat_id, t!("download_complete", locale = &locale, name = download_name)).await {
+            match sender.send_message(&chat_id, &t!("download_complete", locale = &locale, name = download_name)).await {
                 Ok(_) => {
                     log::info!("userId {} | Sent download complete notification for \"{}\"", chat_id, download_name);
                 }
                 Err(err) => {
-                    log::error!("userId {} | Could not send download complete notification for \"{}\": {}",
+                    log::error!("userId {} | Could not send download complete notification for \"{}\": {:?}",
                         chat_id, download_name, err);
                 }
             };

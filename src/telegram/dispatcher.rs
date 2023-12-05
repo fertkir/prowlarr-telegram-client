@@ -3,28 +3,36 @@ use std::sync::Arc;
 
 use teloxide::{Bot, dptree};
 use teloxide::dispatching::{Dispatcher, UpdateFilterExt};
-use teloxide::error_handlers::LoggingErrorHandler;
-use teloxide::prelude::Update;
+use teloxide::prelude::{LoggingErrorHandler, Message, Update};
 use teloxide::update_listeners::webhooks;
 
 use crate::{util, uuid_mapper};
+use crate::core::ext::error::HandlingResult;
+use crate::core::input_handler::InputHandler;
 use crate::downloads_tracker::DownloadsTracker;
 use crate::prowlarr::ProwlarrClient;
-use crate::telegram::message_handler;
+use crate::telegram::tg_input::TelegramInput;
+use crate::telegram::tg_sender::TelegramSender;
 use crate::torrent::torrent_meta::TorrentMeta;
 
 pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
     log::info!("Starting torrents bot...");
 
     let handler = dptree::entry()
-        .branch(Update::filter_message().endpoint(message_handler::handle));
+        .branch(Update::filter_message().endpoint(handle));
+
+    let input_handler = Arc::new(InputHandler::new(
+        ProwlarrClient::from_env(),
+        uuid_mapper::create_arc::<TorrentMeta>(),
+        downloads_tracker,
+        get_allowed_users(),
+        Arc::new(TelegramSender::from(bot.clone()))
+    ));
+
+    // Command::repl_with_listener(bot, answer, listener)
 
     let mut dispatcher = Dispatcher::builder(bot.clone(), handler)
-        .dependencies(dptree::deps![
-            Arc::new(ProwlarrClient::from_env()),
-            uuid_mapper::create_arc::<TorrentMeta>(),
-            downloads_tracker,
-            get_allowed_users()])
+        .dependencies(dptree::deps![input_handler])
         .enable_ctrlc_handler()
         .build();
     if let (Ok(port), Ok(url)) = (std::env::var("WEBHOOK_PORT"), std::env::var("WEBHOOK_URL")) {
@@ -39,6 +47,10 @@ pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
     } else {
         dispatcher.dispatch().await;
     }
+}
+
+async fn handle(input_handler: Arc<InputHandler>, msg: Message) -> HandlingResult {
+    input_handler.handle(Box::new(TelegramInput::from(msg))).await
 }
 
 fn get_allowed_users() -> Vec<u64> {

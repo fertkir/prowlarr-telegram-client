@@ -7,6 +7,7 @@ use std::sync::Arc;
 use teloxide::Bot;
 
 use crate::downloads_tracker::DownloadsTracker;
+use crate::telegram::tg_sender::TelegramSender;
 
 mod prowlarr;
 mod web_server;
@@ -15,6 +16,7 @@ mod telegram;
 mod util;
 mod torrent;
 mod uuid_mapper;
+mod core;
 
 i18n!("locales", fallback = "en");
 
@@ -25,8 +27,9 @@ async fn main() {
     }
     env_logger::init();
     let bot = Bot::from_env();
+    let sender = TelegramSender::from(bot.clone());
     let downloads_tracker = Arc::new(DownloadsTracker::new());
     tokio::join!(
-        telegram::dispatcher::run(bot.clone(), downloads_tracker.clone()),
-        web_server::run(bot, downloads_tracker));
+        telegram::dispatcher::run(bot, downloads_tracker.clone()),
+        web_server::run(Arc::new(sender), downloads_tracker));
 }
