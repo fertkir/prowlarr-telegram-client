@@ -27,14 +27,14 @@ impl Sender for TelegramSender {
             .parse_mode(ParseMode::MarkdownV2)
             .disable_web_page_preview(true)
             .await
-            .map(|message| {})
+            .map(|_| {})
             .map_err(|err| HandlingError::SendError(err.to_string()))
     }
 
     async fn send_plain_message(&self, destination: &Destination, message: &str) -> HandlingResult {
         self.bot.send_message(ChatId(destination.clone()), message)
             .await
-            .map(|message| {})
+            .map(|_| {})
             .map_err(|err| HandlingError::SendError(err.to_string()))
     }
 
@@ -42,7 +42,7 @@ impl Sender for TelegramSender {
         self.bot.send_message(ChatId(destination.clone()), format!("```\n{}\n```", link))
             .parse_mode(ParseMode::MarkdownV2)
             .await
-            .map(|message| {})
+            .map(|_| {})
             .map_err(|err| HandlingError::SendError(err.to_string()))
     }
 
@@ -51,7 +51,7 @@ impl Sender for TelegramSender {
             .file_name(filename.to_string());
         self.bot.send_document(ChatId(destination.clone()), file)
             .await
-            .map(|message| {})
+            .map(|_| {})
             .map_err(|err| HandlingError::SendError(err.to_string()))
     }
 }

@@ -121,11 +121,9 @@ impl InputHandler {
                                 self.sender.send_message(destination, &t!("sent_to_download", locale = &locale)).await?;
                                 log::info!("  to {} | Sent {} for downloading", destination, meta);
                                 match meta.get_torrent_hash(&self.prowlarr).await {
-                                    Ok(hash) => {
-                                        self.downloads_tracker.add(hash, destination.clone(), locale.clone());
-                                    }
+                                    Ok(hash) => self.downloads_tracker.add(hash, destination.clone(), locale.clone()),
                                     Err(err) => {
-                                        log::error!("userId {} | {}", destination, err);
+                                        log::error!("  to {} | {}", destination, err);
                                     }
                                 };
                             } else {
@@ -162,7 +160,7 @@ impl InputHandler {
                                     }
                                     DownloadMeta::TorrentFile(file) => {
                                         self.sender.send_torrent_file(destination, &format!("{}.torrent", uuid), file).await?;
-                                        log::info!("userId {} | Sent .torrent file for {} ", destination, &torrent_data);
+                                        log::info!("  to {} | Sent .torrent file for {} ", destination, &torrent_data);
                                     }
                                 }
                             }
