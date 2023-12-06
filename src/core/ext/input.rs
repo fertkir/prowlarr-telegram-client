@@ -12,7 +12,7 @@ pub enum Command {
     Ignore
 }
 
-pub trait Input {
+pub trait Input: Send + Sync {
     fn get_command(&self) -> Command;
     fn get_source(&self) -> Source;
     fn get_destination(&self) -> Destination;
