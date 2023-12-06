@@ -16,10 +16,10 @@ impl Input for TelegramInput {
         if let Some(msg_text) = self.0.text() {
             return if !msg_text.starts_with('/') {
                 Search(msg_text.to_string())
-            } else if msg_text.starts_with("/d_") {
-                Download(msg_text[3..].to_string())
-            } else if msg_text.starts_with("/m_") {
-                GetLink(msg_text[3..].to_string())
+            } else if let Some(item_uuid) = msg_text.strip_prefix("/d_") {
+                Download(item_uuid.to_string())
+            } else if let Some(item_uuid) = msg_text.strip_prefix("/m_") {
+                GetLink(item_uuid.to_string())
             } else {
                 Help
             }
