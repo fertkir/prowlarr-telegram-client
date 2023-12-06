@@ -36,7 +36,7 @@ impl InputHandler {
         }
     }
 
-    pub async fn handle(&self, input: Box<dyn Input>) -> HandlingResult {
+    pub async fn handle(&self, input: Box<dyn Input + Send + Sync>) -> HandlingResult {
         let source = input.get_source();
         let destination = input.get_destination();
         let locale = input.get_locale();
