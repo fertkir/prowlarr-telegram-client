@@ -29,8 +29,6 @@ pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
         Arc::new(TelegramSender::from(bot.clone()))
     ));
 
-    // Command::repl_with_listener(bot, answer, listener)
-
     let mut dispatcher = Dispatcher::builder(bot.clone(), handler)
         .dependencies(dptree::deps![input_handler])
         .enable_ctrlc_handler()
