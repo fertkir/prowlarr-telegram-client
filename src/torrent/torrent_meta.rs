@@ -15,11 +15,10 @@ pub struct TorrentMeta {
 
 impl TorrentMeta {
     pub async fn get_torrent_hash(&self, download_meta_provider: &impl DownloadMetaProvider) -> Result<String, String> {
-        let magnet_link = self.magnet_url.as_ref()
+        if let Some(magnet_hash) = self.magnet_url.as_ref()
             .and_then(|url| MagnetLink::new(url).ok())
-            .map(|magnet| magnet.hash().to_string());
-        if magnet_link.is_some() {
-            return Ok(magnet_link.unwrap());
+            .map(|magnet| magnet.hash().to_string()) {
+            return Ok(magnet_hash);
         }
         let url = self.magnet_url.as_ref()
             .or(self.download_url.as_ref());
