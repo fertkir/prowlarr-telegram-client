@@ -22,8 +22,8 @@ impl TelegramSender {
 
 #[async_trait]
 impl Sender for TelegramSender {
-    async fn send_message(&self, destination: &Destination, message: &str) -> HandlingResult {
-        self.bot.send_message(ChatId(destination.clone()), message)
+    async fn send_message(&self, destination: Destination, message: &str) -> HandlingResult {
+        self.bot.send_message(ChatId(destination), message)
             .parse_mode(ParseMode::MarkdownV2)
             .disable_web_page_preview(true)
             .await
@@ -31,25 +31,25 @@ impl Sender for TelegramSender {
             .map_err(|err| HandlingError::SendError(err.to_string()))
     }
 
-    async fn send_plain_message(&self, destination: &Destination, message: &str) -> HandlingResult {
-        self.bot.send_message(ChatId(destination.clone()), message)
+    async fn send_plain_message(&self, destination: Destination, message: &str) -> HandlingResult {
+        self.bot.send_message(ChatId(destination), message)
             .await
             .map(|_| {})
             .map_err(|err| HandlingError::SendError(err.to_string()))
     }
 
-    async fn send_magnet(&self, destination: &Destination, link: &str) -> HandlingResult {
-        self.bot.send_message(ChatId(destination.clone()), format!("```\n{}\n```", link))
+    async fn send_magnet(&self, destination: Destination, link: &str) -> HandlingResult {
+        self.bot.send_message(ChatId(destination), format!("```\n{}\n```", link))
             .parse_mode(ParseMode::MarkdownV2)
             .await
             .map(|_| {})
             .map_err(|err| HandlingError::SendError(err.to_string()))
     }
 
-    async fn send_torrent_file(&self, destination: &Destination, filename: &str, file: Bytes) -> HandlingResult {
+    async fn send_torrent_file(&self, destination: Destination, filename: &str, file: Bytes) -> HandlingResult {
         let file = InputFile::memory(file)
             .file_name(filename.to_string());
-        self.bot.send_document(ChatId(destination.clone()), file)
+        self.bot.send_document(ChatId(destination), file)
             .await
             .map(|_| {})
             .map_err(|err| HandlingError::SendError(err.to_string()))

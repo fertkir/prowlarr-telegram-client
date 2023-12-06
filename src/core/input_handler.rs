@@ -42,10 +42,10 @@ impl InputHandler {
         let locale = input.get_locale();
         if self.allowed_users.is_empty() || self.allowed_users.contains(&source) {
             match input.get_command() {
-                Command::Search(query) => self.search(source, &destination, &locale, &query).await?,
-                Command::Download(uuid) => self.download(source, &destination, &locale, &uuid).await?,
-                Command::GetLink(uuid) => self.link(source, &destination, &locale, &uuid).await?,
-                Command::Help => self.sender.send_plain_message(&destination, &t!("help", locale = &locale)).await?,
+                Command::Search(query) => self.search(source, destination, &locale, &query).await?,
+                Command::Download(uuid) => self.download(source, destination, &locale, &uuid).await?,
+                Command::GetLink(uuid) => self.link(source, destination, &locale, &uuid).await?,
+                Command::Help => self.sender.send_plain_message(destination, &t!("help", locale = &locale)).await?,
                 Command::Ignore => {
                     // do nothing
                 }
@@ -54,9 +54,9 @@ impl InputHandler {
         Ok(())
     }
 
-    async fn search(&self, source: Source, destination: &Destination, locale: &Locale, query: &SearchQuery) -> HandlingResult {
+    async fn search(&self, source: Source, destination: Destination, locale: &Locale, query: &SearchQuery) -> HandlingResult {
         log::info!("from {} | Received search request \"{}\"", source, query);
-        match self.prowlarr.search(&query).await {
+        match self.prowlarr.search(query).await {
             Ok(results) => {
                 let first_n_sorted_results: Vec<SearchResult> = sorted_by_seeders(results)
                     .into_iter()
@@ -94,7 +94,7 @@ impl InputHandler {
     }
 
     async fn handle_prowlarr_error(&self,
-                                   destination: &Destination,
+                                   destination: Destination,
                                    locale: &String,
                                    err: impl Display) -> HandlingResult {
         log::error!("  to {} | Error when interacting with Prowlarr: {}", destination, err);
@@ -102,18 +102,18 @@ impl InputHandler {
     }
 
     async fn handle_mapper_error(&self,
-                                 destination: &Destination,
+                                 destination: Destination,
                                  locale: &Locale,
                                  err: MapperError) -> HandlingResult {
         log::error!("  to {} | Error when interacting with mapper: {:?}", destination, err);
         self.sender.send_message(destination, &t!("mapper_error", locale = locale)).await
     }
 
-    async fn download(&self, source: Source, destination: &Destination, locale: &Locale, uuid: &ItemUuid) -> HandlingResult {
+    async fn download(&self, source: Source, destination: Destination, locale: &Locale, uuid: &ItemUuid) -> HandlingResult {
         log::info!("from {} | Received download request for {}", source, uuid);
-        match self.uuid_mapper.get(&uuid).await {
+        match self.uuid_mapper.get(uuid).await {
             Ok(torrent_data) => match torrent_data {
-                None => self.link_not_found(destination, &locale, &uuid).await?,
+                None => self.link_not_found(destination, locale, uuid).await?,
                 Some(meta) => {
                     match self.prowlarr.download(&meta.indexer_id, &meta.guid).await {
                         Ok(response) => {
@@ -121,7 +121,7 @@ impl InputHandler {
                                 self.sender.send_message(destination, &t!("sent_to_download", locale = &locale)).await?;
                                 log::info!("  to {} | Sent {} for downloading", destination, meta);
                                 match meta.get_torrent_hash(&self.prowlarr).await {
-                                    Ok(hash) => self.downloads_tracker.add(hash, destination.clone(), locale.clone()),
+                                    Ok(hash) => self.downloads_tracker.add(hash, destination, locale.clone()),
                                     Err(err) => {
                                         log::error!("  to {} | {}", destination, err);
                                     }
@@ -141,11 +141,11 @@ impl InputHandler {
         Ok(())
     }
 
-    async fn link(&self, source: Source, destination: &Destination, locale: &Locale, uuid: &ItemUuid) -> HandlingResult {
+    async fn link(&self, source: Source, destination: Destination, locale: &Locale, uuid: &ItemUuid) -> HandlingResult {
         log::info!("from {} | Received get link request for {}", source, uuid);
-        match self.uuid_mapper.get(&uuid).await {
+        match self.uuid_mapper.get(uuid).await {
             Ok(torrent_data) => match torrent_data {
-                None => self.link_not_found(destination, &locale, uuid).await?,
+                None => self.link_not_found(destination, locale, uuid).await?,
                 Some(torrent_data) => {
                     if torrent_data.magnet_url.is_some() {
                         self.sender.send_magnet(destination, torrent_data.magnet_url.as_ref().unwrap()).await?;
@@ -177,7 +177,7 @@ impl InputHandler {
         Ok(())
     }
 
-    async fn link_not_found(&self, destination: &Destination, locale: &Locale, uuid: &ItemUuid) -> HandlingResult {
+    async fn link_not_found(&self, destination: Destination, locale: &Locale, uuid: &ItemUuid) -> HandlingResult {
         log::warn!("  to {} | Link for uuid {} not found", destination, &uuid);
         self.sender.send_message(destination, &t!("link_not_found", locale = locale)).await?;
         Ok(())

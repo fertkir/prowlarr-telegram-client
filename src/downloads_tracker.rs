@@ -40,7 +40,7 @@ impl DownloadsTracker {
         // https://github.com/xacrimon/dashmap/issues/78#issuecomment-633745091
         self.users_by_download.entry(hash)
             .or_default()
-            .insert(User { destination: destination, locale: locale.clone()});
+            .insert(User { destination, locale: locale.clone()});
     }
 
     pub fn remove(&self, hash: String) -> HashSet<User> {
