@@ -2,6 +2,7 @@ use derive_more::Display;
 use hightorrent::{MagnetLink, TorrentFile};
 use serde::{Deserialize, Serialize};
 
+use crate::core::prowlarr::SearchResult;
 use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
 
 #[derive(Clone, Display, Serialize, Deserialize)]
@@ -11,6 +12,17 @@ pub struct TorrentMeta {
     pub indexer_id: u8,
     pub download_url: Option<String>,
     pub magnet_url: Option<String>,
+}
+
+impl From<&SearchResult> for TorrentMeta {
+    fn from(value: &SearchResult) -> Self {
+        TorrentMeta {
+            indexer_id: value.indexer_id,
+            download_url: value.download_url.clone(),
+            guid: value.guid.clone(),
+            magnet_url: value.magnet_url.clone(),
+        }
+    }
 }
 
 impl TorrentMeta {
@@ -48,6 +60,7 @@ mod tests {
     use bytes::Bytes;
     use mockall::{predicate::*};
 
+    use crate::core::prowlarr::SearchResult;
     use crate::torrent::download_meta::{DownloadMeta, MockDownloadMetaProvider};
     use crate::torrent::torrent_meta::TorrentMeta;
 
@@ -114,5 +127,29 @@ mod tests {
             .unwrap();
 
         assert_eq!(hash, "d55be2cd263efa84aeb9495333a4fabc428a4250");
+    }
+
+    #[test]
+    fn search_result_to_torrent_meta() {
+        let search_result = SearchResult {
+            guid: "ubuntu_22_04".to_string(),
+            indexer_id: 2,
+            title: "".to_string(),
+            size: 0,
+            publish_date: Default::default(),
+            download_url: Some("download".to_string()),
+            magnet_url: Some("magnet".to_string()),
+            info_url: "".to_string(),
+            seeders: 0,
+            leechers: 0,
+            grabs: None,
+        };
+
+        let result: TorrentMeta = (&search_result).into();
+
+        assert_eq!(result.guid, "ubuntu_22_04");
+        assert_eq!(result.indexer_id, 2);
+        assert_eq!(result.magnet_url, Some("magnet".to_string()));
+        assert_eq!(result.download_url, Some("download".to_string()));
     }
 }

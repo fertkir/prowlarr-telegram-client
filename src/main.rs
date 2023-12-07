@@ -9,11 +9,11 @@ use teloxide::Bot;
 use crate::core::downloads_tracker::DownloadsTracker;
 use crate::core::input_handler::InputHandler;
 use crate::core::prowlarr::ProwlarrClient;
+use crate::ext::search_result_serializer::telegram::TgSearchResultSerializer;
 use crate::ext::sender::telegram::TelegramSender;
 use crate::ext::uuid_mapper;
 use crate::torrent::torrent_meta::TorrentMeta;
 
-mod telegram;
 mod torrent;
 mod core;
 mod ext;
@@ -34,7 +34,8 @@ async fn main() {
         uuid_mapper::create::<TorrentMeta>(),
         downloads_tracker.clone(),
         get_allowed_users(),
-        Box::new(TelegramSender::from(bot.clone()))
+        Box::new(TelegramSender::from(bot.clone())),
+        Box::new(TgSearchResultSerializer)
     );
 
     tokio::join!(
