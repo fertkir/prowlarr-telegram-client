@@ -9,7 +9,7 @@ pub fn parse_ip(env_var: &str) -> IpAddr {
 
 #[cfg(test)]
 mod tests {
-    use crate::util::parse_ip;
+    use crate::core::util::parse_ip;
 
     #[test]
     fn parse_ip_from_env_var() {
