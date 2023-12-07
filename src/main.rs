@@ -27,9 +27,8 @@ async fn main() {
     }
     env_logger::init();
     let bot = Bot::from_env();
-    let sender = TelegramSender::from(bot.clone());
     let downloads_tracker = Arc::new(DownloadsTracker::new());
     tokio::join!(
-        telegram::dispatcher::run(bot, downloads_tracker.clone()),
-        web_server::run(Arc::new(sender), downloads_tracker));
+        telegram::dispatcher::run(bot.clone(), downloads_tracker.clone()),
+        web_server::run(Arc::new(TelegramSender::from(bot)), downloads_tracker));
 }
