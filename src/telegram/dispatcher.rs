@@ -11,10 +11,10 @@ use crate::core::HandlingResult;
 use crate::core::input_handler::InputHandler;
 use crate::core::prowlarr::ProwlarrClient;
 use crate::core::util;
+use crate::ext::uuid_mapper;
 use crate::telegram::tg_input::TelegramInput;
-use crate::telegram::tg_sender::TelegramSender;
+use crate::ext::sender::telegram::TelegramSender;
 use crate::torrent::torrent_meta::TorrentMeta;
-use crate::uuid_mapper;
 
 pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
     log::info!("Starting torrents bot...");

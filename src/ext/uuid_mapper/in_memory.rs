@@ -56,8 +56,8 @@ impl<V: Clone + Sync + Send> UuidMapper<V> for InMemoryUuidMapper<V> {
 
 #[cfg(test)]
 mod tests {
-    use crate::uuid_mapper::in_memory::InMemoryUuidMapper;
-    use crate::uuid_mapper::UuidMapper;
+    use crate::ext::uuid_mapper::in_memory::InMemoryUuidMapper;
+    use crate::ext::uuid_mapper::UuidMapper;
 
     #[tokio::test]
     async fn get_same_value_multiple_times() {

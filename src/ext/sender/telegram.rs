@@ -5,10 +5,10 @@ use teloxide::payloads::SendMessageSetters;
 use teloxide::prelude::Requester;
 use teloxide::types::{ChatId, InputFile, ParseMode};
 
+use crate::core::HandlingError;
 use crate::core::HandlingResult;
 use crate::core::traits::input::Destination;
 use crate::core::traits::sender::Sender;
-use crate::core::HandlingError;
 
 #[derive(Clone)]
 pub struct TelegramSender {
