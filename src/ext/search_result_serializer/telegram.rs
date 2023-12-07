@@ -12,9 +12,9 @@ impl SearchResultSerializer for TgSearchResultSerializer {
         format!("{}\n{}\nS {} \\| L {} \\| {} \\| {} {} \\| {} {}\n{}: /d\\_{}\n{}: /m\\_{}\n\n",
                 escape(&search_result.title),
                 link(&search_result.info_url, &t!("description", locale = &locale)),
-                search_result.seeders, search_result.leechers, downloads(&search_result, locale), &t!("registered", locale = &locale),
+                search_result.seeders, search_result.leechers, downloads(search_result, locale), &t!("registered", locale = &locale),
                 escape(&search_result.publish_date.date_naive().to_string()),
-                &t!("size", locale = &locale), size(&search_result),
+                &t!("size", locale = &locale), size(search_result),
                 bold(&t!("download", locale = &locale)), bot_uuid,
                 escape(&t!("get_link", locale = &locale)), bot_uuid)
     }
