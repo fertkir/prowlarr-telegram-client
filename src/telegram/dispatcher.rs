@@ -23,10 +23,10 @@ pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
 
     let input_handler = Arc::new(InputHandler::new(
         ProwlarrClient::from_env(),
-        uuid_mapper::create_arc::<TorrentMeta>(),
+        uuid_mapper::create::<TorrentMeta>(),
         downloads_tracker,
         get_allowed_users(),
-        Arc::new(TelegramSender::from(bot.clone()))
+        Box::new(TelegramSender::from(bot.clone()))
     ));
 
     let mut dispatcher = Dispatcher::builder(bot.clone(), handler)

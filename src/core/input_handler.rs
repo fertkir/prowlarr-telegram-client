@@ -12,10 +12,10 @@ use crate::uuid_mapper::{MapperError, UuidMapper};
 
 pub struct InputHandler {
     prowlarr: ProwlarrClient,
-    uuid_mapper: Arc<dyn UuidMapper<TorrentMeta>>,
+    uuid_mapper: Box<dyn UuidMapper<TorrentMeta>>,
     downloads_tracker: Arc<DownloadsTracker>,
     allowed_users: Vec<u64>,
-    sender: Arc<dyn Sender>,
+    sender: Box<dyn Sender>,
 }
 
 const RESULTS_COUNT: usize = 10;
@@ -23,10 +23,10 @@ const RESULTS_COUNT: usize = 10;
 impl InputHandler {
 
     pub fn new(prowlarr: ProwlarrClient,
-               uuid_mapper: Arc<dyn UuidMapper<TorrentMeta>>,
+               uuid_mapper: Box<dyn UuidMapper<TorrentMeta>>,
                downloads_tracker: Arc<DownloadsTracker>,
                allowed_users: Vec<u64>,
-               sender: Arc<dyn Sender>) -> InputHandler {
+               sender: Box<dyn Sender>) -> InputHandler {
         InputHandler {
             prowlarr,
             uuid_mapper,

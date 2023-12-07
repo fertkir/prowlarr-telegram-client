@@ -1,7 +1,5 @@
-use std::sync::Arc;
-
 use async_trait::async_trait;
-use serde::{Serialize};
+use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 use crate::uuid_mapper::in_memory::InMemoryUuidMapper;
@@ -26,11 +24,11 @@ pub trait UuidMapper<V>: Sync + Send {
 #[cfg(feature = "redis-storage")]
 const REDIS_URL_ENV: &str = "REDIS_URL";
 
-pub fn create_arc<V: Clone + Sync + Send + Serialize + DeserializeOwned + 'static>() -> Arc<dyn UuidMapper<V>> {
+pub fn create<V: Clone + Sync + Send + Serialize + DeserializeOwned + 'static>() -> Box<dyn UuidMapper<V>> {
     #[cfg(feature = "redis-storage")]
     if let Ok(redis_url) = std::env::var(REDIS_URL_ENV) {
-        return Arc::new(RedisUuidMapper::new(&redis_url)
+        return Box::new(RedisUuidMapper::new(&redis_url)
             .unwrap_or_else(|e| panic!("Cannot create Redis client from {REDIS_URL_ENV}=\"{redis_url}\": {e}")))
     };
-    Arc::new(InMemoryUuidMapper::new())
+    Box::new(InMemoryUuidMapper::new())
 }
