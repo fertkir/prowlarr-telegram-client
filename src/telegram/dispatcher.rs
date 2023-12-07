@@ -6,32 +6,53 @@ use teloxide::dispatching::{Dispatcher, UpdateFilterExt};
 use teloxide::prelude::{LoggingErrorHandler, Message, Update};
 use teloxide::update_listeners::webhooks;
 
-use crate::core::downloads_tracker::DownloadsTracker;
 use crate::core::HandlingResult;
 use crate::core::input_handler::InputHandler;
-use crate::core::prowlarr::ProwlarrClient;
+use crate::core::traits::input::{Command, Destination, Input, Locale, Source};
+use crate::core::traits::input::Command::{Download, GetLink, Help, Ignore, Search};
 use crate::core::util;
-use crate::ext::uuid_mapper;
-use crate::telegram::tg_input::TelegramInput;
-use crate::ext::sender::telegram::TelegramSender;
-use crate::torrent::torrent_meta::TorrentMeta;
 
-pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
+struct TelegramInput(Message);
+
+impl Input for TelegramInput {
+    fn get_command(&self) -> Command {
+        if let Some(msg_text) = self.0.text() {
+            return if !msg_text.starts_with('/') {
+                Search(msg_text.to_string())
+            } else if let Some(item_uuid) = msg_text.strip_prefix("/d_") {
+                Download(item_uuid.to_string())
+            } else if let Some(item_uuid) = msg_text.strip_prefix("/m_") {
+                GetLink(item_uuid.to_string())
+            } else {
+                Help
+            }
+        }
+        Ignore
+    }
+
+    fn get_source(&self) -> Source {
+        self.0.from().map(|from| from.id.0).unwrap_or(0)
+    }
+
+    fn get_destination(&self) -> Destination {
+        self.0.chat.id.0
+    }
+
+    fn get_locale(&self) -> Locale {
+        self.0.from()
+            .and_then(|u| u.language_code.clone())
+            .unwrap_or_else(|| String::from("en"))
+    }
+}
+
+pub async fn run(bot: Bot, input_handler: InputHandler) {
     log::info!("Starting torrents bot...");
 
     let handler = dptree::entry()
         .branch(Update::filter_message().endpoint(handle));
 
-    let input_handler = Arc::new(InputHandler::new(
-        ProwlarrClient::from_env(),
-        uuid_mapper::create::<TorrentMeta>(),
-        downloads_tracker,
-        get_allowed_users(),
-        Box::new(TelegramSender::from(bot.clone()))
-    ));
-
     let mut dispatcher = Dispatcher::builder(bot.clone(), handler)
-        .dependencies(dptree::deps![input_handler])
+        .dependencies(dptree::deps![Arc::new(input_handler)])
         .enable_ctrlc_handler()
         .build();
     if let (Ok(port), Ok(url)) = (std::env::var("WEBHOOK_PORT"), std::env::var("WEBHOOK_URL")) {
@@ -49,57 +70,5 @@ pub async fn run(bot: Bot, downloads_tracker: Arc<DownloadsTracker>) {
 }
 
 async fn handle(input_handler: Arc<InputHandler>, msg: Message) -> HandlingResult {
-    input_handler.handle(Box::new(TelegramInput::from(msg))).await
-}
-
-fn get_allowed_users() -> Vec<u64> {
-    std::env::var("ALLOWED_USERS")
-        .unwrap_or_default()
-        .split(',')
-        .filter(|user| !user.is_empty())
-        .map(|user| user.parse::<u64>()
-            .unwrap_or_else(|_| panic!("ALLOWED_USERS list must be a comma-separated \
-                string of integers. Value \"{user}\" is unexpected")))
-        .collect()
-}
-
-#[cfg(test)]
-mod tests {
-    mod allowed_users {
-        use crate::telegram::dispatcher::get_allowed_users;
-
-        #[test]
-        fn empty_list_if_var_is_not_set() {
-            temp_env::with_var_unset("ALLOWED_USERS", || {
-                assert_eq!(get_allowed_users().len(), 0)
-            });
-        }
-
-        #[test]
-        #[should_panic(expected = "ALLOWED_USERS list must be a comma-separated \
-                string of integers. Value \"aaa\" is unexpected")]
-        fn incorrect_allowed_users_value() {
-            temp_env::with_var("ALLOWED_USERS", Some("aaa"), || {
-                get_allowed_users();
-            });
-        }
-
-        #[test]
-        fn one_user() {
-            temp_env::with_var("ALLOWED_USERS", Some("1000"), || {
-                assert_eq!(get_allowed_users().len(), 1);
-                assert_eq!(get_allowed_users().first(), Some(1000).as_ref());
-            });
-        }
-
-        #[test]
-        fn multiple_users() {
-            temp_env::with_var("ALLOWED_USERS", Some("1000,2000,3000"), || {
-                assert_eq!(get_allowed_users().len(), 3);
-                assert_eq!(get_allowed_users().first(), Some(1000).as_ref());
-                assert_eq!(get_allowed_users().get(1), Some(2000).as_ref());
-                assert_eq!(get_allowed_users().get(2), Some(3000).as_ref());
-            });
-        }
-    }
+    input_handler.handle(Box::new(TelegramInput(msg))).await
 }
