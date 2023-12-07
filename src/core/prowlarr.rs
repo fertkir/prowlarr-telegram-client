@@ -7,7 +7,7 @@ use reqwest::header::{CONTENT_TYPE, LOCATION};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
+use crate::core::download_meta::{DownloadMeta, DownloadMetaProvider};
 
 pub struct ProwlarrClient {
     api_key: String,
@@ -267,7 +267,7 @@ mod test {
             use wiremock::matchers::{method, path};
             use crate::core::prowlarr::{PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV, ProwlarrClient};
 
-            use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
+            use crate::core::download_meta::{DownloadMeta, DownloadMetaProvider};
 
             const DOWNLOAD_URL: &str = "http://localhost:9696/content";
 

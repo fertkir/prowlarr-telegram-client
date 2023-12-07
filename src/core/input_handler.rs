@@ -8,8 +8,8 @@ use crate::core::traits::input::{Command, Destination, Input, ItemUuid, Locale, 
 use crate::core::traits::search_result_serializer::SearchResultSerializer;
 use crate::core::traits::sender::Sender;
 use crate::core::traits::uuid_mapper::{MapperError, UuidMapper};
-use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
-use crate::torrent::torrent_meta::TorrentMeta;
+use crate::core::download_meta::{DownloadMeta, DownloadMetaProvider};
+use crate::core::torrent_meta::TorrentMeta;
 
 pub struct InputHandler {
     prowlarr: ProwlarrClient,

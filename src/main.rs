@@ -9,12 +9,11 @@ use teloxide::Bot;
 use crate::core::downloads_tracker::DownloadsTracker;
 use crate::core::input_handler::InputHandler;
 use crate::core::prowlarr::ProwlarrClient;
+use crate::core::torrent_meta::TorrentMeta;
 use crate::ext::search_result_serializer::telegram::TgSearchResultSerializer;
 use crate::ext::sender::telegram::TelegramSender;
 use crate::ext::uuid_mapper;
-use crate::torrent::torrent_meta::TorrentMeta;
 
-mod torrent;
 mod core;
 mod ext;
 

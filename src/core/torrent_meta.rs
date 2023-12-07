@@ -3,7 +3,7 @@ use hightorrent::{MagnetLink, TorrentFile};
 use serde::{Deserialize, Serialize};
 
 use crate::core::prowlarr::SearchResult;
-use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
+use crate::core::download_meta::{DownloadMeta, DownloadMetaProvider};
 
 #[derive(Clone, Display, Serialize, Deserialize)]
 #[display(fmt = "{{ indexer_id: {}, guid: {} }}", indexer_id, guid)]
@@ -61,8 +61,8 @@ mod tests {
     use mockall::{predicate::*};
 
     use crate::core::prowlarr::SearchResult;
-    use crate::torrent::download_meta::{DownloadMeta, MockDownloadMetaProvider};
-    use crate::torrent::torrent_meta::TorrentMeta;
+    use crate::core::download_meta::{DownloadMeta, MockDownloadMetaProvider};
+    use crate::core::torrent_meta::TorrentMeta;
 
     #[tokio::test]
     async fn magnet_link_from_torrent_meta() {
