@@ -52,7 +52,7 @@ impl DownloadsTracker {
 
 #[cfg(test)]
 mod tests {
-    use crate::downloads_tracker::{DownloadsTracker, User};
+    use crate::core::downloads_tracker::{DownloadsTracker, User};
 
     #[test]
     fn one_user_for_one_hash() {

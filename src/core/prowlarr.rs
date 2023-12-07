@@ -128,8 +128,7 @@ mod test {
     mod get_api_key {
         use std::fs::File;
         use std::io::Write;
-
-        use crate::prowlarr::{get_api_key, PROWLARR_API_KEY_ENV, PROWLARR_API_KEY_FILE_ENV};
+        use crate::core::prowlarr::{get_api_key, PROWLARR_API_KEY_ENV, PROWLARR_API_KEY_FILE_ENV};
 
         #[test]
         fn from_env_var() {
@@ -168,7 +167,7 @@ mod test {
     }
 
     mod get_env {
-        use crate::prowlarr::get_env;
+        use crate::core::prowlarr::get_env;
 
         #[test]
         fn get_var() {
@@ -190,8 +189,7 @@ mod test {
         use reqwest::StatusCode;
         use wiremock::{Mock, MockServer, ResponseTemplate};
         use wiremock::matchers::{header, method, path, query_param};
-
-        use crate::prowlarr::{PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV, ProwlarrClient};
+        use crate::core::prowlarr::{PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV, ProwlarrClient};
 
         #[test]
         #[should_panic(expected = "Could not parse PROWLARR_BASE_URL: relative URL without a base: \"incorrect_url\"")]
@@ -267,8 +265,8 @@ mod test {
             use reqwest::header::LOCATION;
             use wiremock::{Mock, MockServer, ResponseTemplate};
             use wiremock::matchers::{method, path};
+            use crate::core::prowlarr::{PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV, ProwlarrClient};
 
-            use crate::prowlarr::{PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV, ProwlarrClient};
             use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
 
             const DOWNLOAD_URL: &str = "http://localhost:9696/content";
