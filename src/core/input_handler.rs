@@ -1,12 +1,13 @@
 use std::fmt::Display;
 use std::sync::Arc;
-use crate::core::downloads_tracker::DownloadsTracker;
 
+use crate::core::downloads_tracker::DownloadsTracker;
 use crate::core::HandlingResult;
+use crate::core::prowlarr::{ProwlarrClient, SearchResult};
 use crate::core::traits::input::{Command, Destination, Input, ItemUuid, Locale, SearchQuery, Source};
+use crate::core::traits::search_result_serializer::SearchResultSerializer;
 use crate::core::traits::sender::Sender;
 use crate::core::traits::uuid_mapper::{MapperError, UuidMapper};
-use crate::core::prowlarr::{ProwlarrClient, SearchResult};
 use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
 use crate::torrent::torrent_meta::TorrentMeta;
 
@@ -16,6 +17,7 @@ pub struct InputHandler {
     downloads_tracker: Arc<DownloadsTracker>,
     allowed_users: Vec<u64>,
     sender: Box<dyn Sender>,
+    search_result_serializer: Box<dyn SearchResultSerializer>
 }
 
 const RESULTS_COUNT: usize = 10;
@@ -26,13 +28,15 @@ impl InputHandler {
                uuid_mapper: Box<dyn UuidMapper<TorrentMeta>>,
                downloads_tracker: Arc<DownloadsTracker>,
                allowed_users: Vec<u64>,
-               sender: Box<dyn Sender>) -> InputHandler {
+               sender: Box<dyn Sender>,
+               search_result_serializer: Box<dyn SearchResultSerializer>) -> InputHandler {
         InputHandler {
             prowlarr,
             uuid_mapper,
             downloads_tracker,
             allowed_users,
             sender,
+            search_result_serializer,
         }
     }
 
@@ -72,7 +76,7 @@ impl InputHandler {
                             .iter()
                             .enumerate()
                             .map(|(index, search_result)|
-                                search_result.to_message(&bot_uuids[index], locale))
+                                self.search_result_serializer.serialize(search_result, &bot_uuids[index], locale))
                             .reduce(|acc, e| acc + &e);
                         match response {
                             None => {
