@@ -6,10 +6,10 @@ use serde::Deserialize;
 use tokio::task;
 use warp::Filter;
 use warp::reply::WithStatus;
+use crate::core::downloads_tracker::DownloadsTracker;
 
 use crate::core::ext::sender::Sender;
-use crate::downloads_tracker::DownloadsTracker;
-use crate::util;
+use crate::core::util;
 
 #[derive(Deserialize, Display)]
 #[display(fmt = "{{ hash: {}, name: {} }}", hash, name)]

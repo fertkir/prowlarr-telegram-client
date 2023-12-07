@@ -5,15 +5,12 @@ use std::env;
 use std::sync::Arc;
 
 use teloxide::Bot;
+use crate::core::downloads_tracker::DownloadsTracker;
 
-use crate::downloads_tracker::DownloadsTracker;
 use crate::telegram::tg_sender::TelegramSender;
 
-mod prowlarr;
 mod web_server;
-mod downloads_tracker;
 mod telegram;
-mod util;
 mod torrent;
 mod uuid_mapper;
 mod core;

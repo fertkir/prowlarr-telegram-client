@@ -2,7 +2,7 @@ use byte_unit::Byte;
 use byte_unit::UnitType::Decimal;
 use teloxide::utils::markdown::{bold, escape, link};
 
-use crate::prowlarr::SearchResult;
+use crate::core::prowlarr::SearchResult;
 use crate::torrent::torrent_meta::TorrentMeta;
 
 impl SearchResult {
@@ -47,7 +47,7 @@ impl From<&SearchResult> for TorrentMeta {
 mod tests {
     use chrono::DateTime;
 
-    use crate::prowlarr::SearchResult;
+    use crate::core::prowlarr::SearchResult;
     use crate::torrent::torrent_meta::TorrentMeta;
 
     #[test]

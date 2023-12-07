@@ -1,10 +1,11 @@
 use std::sync::atomic::{AtomicU32, Ordering};
-use async_trait::async_trait;
 
+use async_trait::async_trait;
 use dashmap::DashMap;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
-use crate::uuid_mapper::{MapperError, UuidMapper};
+
+use crate::core::ext::uuid_mapper::{MapperError, UuidMapper};
 
 pub struct InMemoryUuidMapper<V: Clone> {
     session_key: String,
@@ -55,8 +56,8 @@ impl<V: Clone + Sync + Send> UuidMapper<V> for InMemoryUuidMapper<V> {
 
 #[cfg(test)]
 mod tests {
-    use crate::uuid_mapper::UuidMapper;
     use crate::uuid_mapper::in_memory::InMemoryUuidMapper;
+    use crate::uuid_mapper::UuidMapper;
 
     #[tokio::test]
     async fn get_same_value_multiple_times() {

@@ -1,14 +1,14 @@
 use std::fmt::Display;
 use std::sync::Arc;
+use crate::core::downloads_tracker::DownloadsTracker;
 
 use crate::core::ext::error::HandlingResult;
 use crate::core::ext::input::{Command, Destination, Input, ItemUuid, Locale, SearchQuery, Source};
 use crate::core::ext::sender::Sender;
-use crate::downloads_tracker::DownloadsTracker;
-use crate::prowlarr::{ProwlarrClient, SearchResult};
+use crate::core::ext::uuid_mapper::{MapperError, UuidMapper};
+use crate::core::prowlarr::{ProwlarrClient, SearchResult};
 use crate::torrent::download_meta::{DownloadMeta, DownloadMetaProvider};
 use crate::torrent::torrent_meta::TorrentMeta;
-use crate::uuid_mapper::{MapperError, UuidMapper};
 
 pub struct InputHandler {
     prowlarr: ProwlarrClient,
