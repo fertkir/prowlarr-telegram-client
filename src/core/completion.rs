@@ -5,7 +5,7 @@ use serde::Deserialize;
 use tokio::task;
 
 use crate::core::downloads_tracker::DownloadsTracker;
-use crate::core::ext::sender::Sender;
+use crate::core::traits::sender::Sender;
 
 #[derive(Deserialize, Display)]
 #[display(fmt = "{{ hash: {}, name: {} }}", hash, name)]

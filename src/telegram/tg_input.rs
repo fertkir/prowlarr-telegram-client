@@ -1,7 +1,7 @@
 use teloxide::prelude::Message;
 
-use crate::core::ext::input::{Command, Destination, Input, Locale, Source};
-use crate::core::ext::input::Command::{Download, GetLink, Help, Ignore, Search};
+use crate::core::traits::input::{Command, Destination, Input, Locale, Source};
+use crate::core::traits::input::Command::{Download, GetLink, Help, Ignore, Search};
 
 pub struct TelegramInput(Message);
 

@@ -7,7 +7,7 @@ use warp::reply::WithStatus;
 use crate::core::{completion, util};
 use crate::core::completion::CompletionRequest;
 use crate::core::downloads_tracker::DownloadsTracker;
-use crate::core::ext::sender::Sender;
+use crate::core::traits::sender::Sender;
 
 pub async fn run(sender: Arc<dyn Sender>, downloads_tracker: Arc<DownloadsTracker>) {
     if let Ok(port) = std::env::var("COMPLETE_PORT") {

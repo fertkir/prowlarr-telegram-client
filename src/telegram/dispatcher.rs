@@ -7,7 +7,7 @@ use teloxide::prelude::{LoggingErrorHandler, Message, Update};
 use teloxide::update_listeners::webhooks;
 
 use crate::core::downloads_tracker::DownloadsTracker;
-use crate::core::ext::error::HandlingResult;
+use crate::core::HandlingResult;
 use crate::core::input_handler::InputHandler;
 use crate::core::prowlarr::ProwlarrClient;
 use crate::core::util;

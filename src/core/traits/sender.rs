@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use bytes::Bytes;
 
-use crate::core::ext::error::HandlingResult;
-use crate::core::ext::input::Destination;
+use crate::core::HandlingResult;
+use crate::core::traits::input::Destination;
 
 #[async_trait]
 pub trait Sender: Send + Sync {

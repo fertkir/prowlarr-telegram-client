@@ -5,7 +5,7 @@ use dashmap::DashMap;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 
-use crate::core::ext::uuid_mapper::{MapperError, UuidMapper};
+use crate::core::traits::uuid_mapper::{MapperError, UuidMapper};
 
 pub struct InMemoryUuidMapper<V: Clone> {
     session_key: String,

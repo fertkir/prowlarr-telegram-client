@@ -3,7 +3,7 @@ use std::hash::{Hash, Hasher};
 
 use dashmap::DashMap;
 
-use crate::core::ext::input::Destination;
+use crate::core::traits::input::Destination;
 
 #[derive(Eq)]
 pub struct User {

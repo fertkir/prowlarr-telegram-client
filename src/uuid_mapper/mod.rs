@@ -1,6 +1,6 @@
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use crate::core::ext::uuid_mapper::UuidMapper;
+use crate::core::traits::uuid_mapper::UuidMapper;
 
 use crate::uuid_mapper::in_memory::InMemoryUuidMapper;
 #[cfg(feature = "redis-storage")]
