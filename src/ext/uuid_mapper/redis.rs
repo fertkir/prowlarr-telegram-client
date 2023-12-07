@@ -4,7 +4,8 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json::Error;
 
-use crate::uuid_mapper::{MapperError, UuidMapper};
+use crate::core::traits::uuid_mapper::MapperError;
+use crate::uuid_mapper::UuidMapper;
 
 pub struct RedisUuidMapper {
     client: redis::Client,
