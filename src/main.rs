@@ -38,7 +38,7 @@ async fn main() {
     );
 
     tokio::join!(
-        telegram::dispatcher::run(bot.clone(), input_handler),
+        ext::input_handler::telegram::run(bot.clone(), input_handler),
         ext::completion::web::run(Arc::new(TelegramSender::from(bot)), downloads_tracker));
 }
 
