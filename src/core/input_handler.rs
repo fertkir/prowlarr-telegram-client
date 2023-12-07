@@ -151,7 +151,7 @@ impl InputHandler {
             Ok(torrent_data) => match torrent_data {
                 None => self.link_not_found(destination, locale, uuid).await?,
                 Some(torrent_data) => {
-                    if torrent_data.magnet_url.is_some() {
+                    if torrent_data.magnet_url.is_some() { // todo this code resembles TorrentMeta.get_torrent_hash()
                         self.sender.send_magnet(destination, torrent_data.magnet_url.as_ref().unwrap()).await?;
                         log::info!("  to {} | Sent magnet link for {} ", destination, &torrent_data);
                     } else if torrent_data.download_url.is_some() {
