@@ -109,7 +109,7 @@ impl InputHandler {
                                  destination: Destination,
                                  locale: &Locale,
                                  err: MapperError) -> HandlingResult {
-        log::error!("  to {} | Error when interacting with mapper: {:?}", destination, err);
+        log::error!("  to {} | {}", destination, err);
         self.sender.send_message(destination, &t!("mapper_error", locale = locale)).await
     }
 

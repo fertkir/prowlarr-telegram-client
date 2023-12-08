@@ -1,8 +1,9 @@
 use async_trait::async_trait;
+use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum MapperError {
-    // todo use thiserror: https://docs.rs/thiserror/latest/thiserror/
+    #[error("Error when interacting with mapper: {}", .0)]
     Err(String)
 }
 
