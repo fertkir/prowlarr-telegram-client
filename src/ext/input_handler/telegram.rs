@@ -31,7 +31,7 @@ impl Input for TelegramInput {
     }
 
     fn get_source(&self) -> Source {
-        self.0.from().map(|from| from.id.0).unwrap_or(0)
+        self.0.from().map(|from| from.id.0).unwrap_or_default()
     }
 
     fn get_destination(&self) -> Destination {
