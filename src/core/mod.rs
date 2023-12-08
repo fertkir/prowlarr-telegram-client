@@ -11,7 +11,7 @@ pub mod download_meta;
 
 #[derive(Error, Debug)]
 pub enum HandlingError {
-    #[error("Error when sending a message: {}", .0)]
+    #[error("Error when sending a message: {0}")]
     SendError(String)
 }
 

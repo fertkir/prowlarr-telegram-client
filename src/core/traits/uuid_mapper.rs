@@ -3,7 +3,7 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum MapperError {
-    #[error("Error when interacting with mapper: {}", .0)]
+    #[error("Error when interacting with mapper: {0}")]
     Err(String)
 }
 
