@@ -3,12 +3,12 @@ use std::hash::{Hash, Hasher};
 
 use dashmap::DashMap;
 
-use crate::core::traits::input::Destination;
+use crate::core::traits::input::{Destination, Locale};
 
 #[derive(Eq)]
 pub struct User {
     pub destination: Destination,
-    pub locale: String
+    pub locale: Locale
 }
 
 impl PartialEq for User {
@@ -35,12 +35,12 @@ impl DownloadsTracker {
         }
     }
 
-    pub fn add(&self, hash: String, destination: Destination, locale: String) {
+    pub fn add(&self, hash: String, destination: Destination, locale: Locale) {
         // this entry() call should keep a lock during returned value's lifetime:
         // https://github.com/xacrimon/dashmap/issues/78#issuecomment-633745091
         self.users_by_download.entry(hash)
             .or_default()
-            .insert(User { destination, locale: locale.clone()});
+            .insert(User { destination, locale });
     }
 
     pub fn remove(&self, hash: String) -> HashSet<User> {
@@ -57,11 +57,11 @@ mod tests {
     #[test]
     fn one_user_for_one_hash() {
         let tracker = DownloadsTracker::new();
-        tracker.add("hash1".to_string(), 2, "ru".to_string());
+        tracker.add("hash1".to_string(), 2, "ru".into());
 
         let hash2_users = tracker.remove("hash1".to_string());
         assert_eq!(hash2_users.len(), 1);
-        assert!(hash2_users.contains(&User { destination: 2, locale: "ru".to_string() }));
+        assert!(hash2_users.contains(&User { destination: 2, locale: "ru".into() }));
     }
 
     #[test]
@@ -75,30 +75,30 @@ mod tests {
     #[test]
     fn multiple_users_for_same_hash() {
         let tracker = DownloadsTracker::new();
-        tracker.add("hash1".to_string(), 1, "en".to_string());
-        tracker.add("hash1".to_string(), 2, "ru".to_string());
+        tracker.add("hash1".to_string(), 1, "en".into());
+        tracker.add("hash1".to_string(), 2, "ru".into());
 
         let hash1_users = tracker.remove("hash1".to_string());
         assert_eq!(hash1_users.len(), 2);
-        assert!(hash1_users.contains(&User { destination: 1, locale: "en".to_string() }));
-        assert!(hash1_users.contains(&User { destination: 2, locale: "ru".to_string() }));
+        assert!(hash1_users.contains(&User { destination: 1, locale: "en".into() }));
+        assert!(hash1_users.contains(&User { destination: 2, locale: "ru".into() }));
     }
 
     #[test]
     fn user_with_same_id_is_same_user() {
         let tracker = DownloadsTracker::new();
-        tracker.add("hash1".to_string(), 1, "ru".to_string());
-        tracker.add("hash1".to_string(), 1, "en".to_string());
+        tracker.add("hash1".to_string(), 1, "ru".into());
+        tracker.add("hash1".to_string(), 1, "en".into());
 
         let hash1_users = tracker.remove("hash1".to_string());
         assert_eq!(hash1_users.len(), 1);
-        assert!(hash1_users.contains(&User { destination: 1, locale: "en".to_string() }));
+        assert!(hash1_users.contains(&User { destination: 1, locale: "en".into() }));
     }
 
     #[test]
     fn remove_method_should_remove_value_from_tracker() {
         let tracker = DownloadsTracker::new();
-        tracker.add("hash1".to_string(), 1, "ru".to_string());
+        tracker.add("hash1".to_string(), 1, "ru".into());
 
         assert_eq!(tracker.remove("hash1".to_string()).len(), 1);
         assert_eq!(tracker.remove("hash1".to_string()).len(), 0);

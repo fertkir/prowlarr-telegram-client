@@ -1,8 +1,8 @@
-pub type SearchQuery = String;
+pub type SearchQuery = Box<str>;
 pub type Source = u64;
 pub type Destination = i64;
-pub type ItemUuid = String;
-pub type Locale = String;
+pub type ItemUuid = Box<str>;
+pub type Locale = Box<str>;
 
 pub enum Command {
     Search(SearchQuery),

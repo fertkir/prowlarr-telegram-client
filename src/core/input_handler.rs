@@ -99,7 +99,7 @@ impl InputHandler {
 
     async fn handle_prowlarr_error(&self,
                                    destination: Destination,
-                                   locale: &String,
+                                   locale: &Locale,
                                    err: impl Display) -> HandlingResult {
         log::error!("  to {} | Error when interacting with Prowlarr: {}", destination, err);
         self.sender.send_message(destination, &t!("prowlarr_error", locale = &locale)).await

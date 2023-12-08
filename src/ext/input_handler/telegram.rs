@@ -18,11 +18,11 @@ impl Input for TelegramInput {
     fn get_command(&self) -> Command {
         if let Some(msg_text) = self.0.text() {
             return if !msg_text.starts_with('/') {
-                Search(msg_text.to_string())
+                Search(msg_text.into())
             } else if let Some(item_uuid) = msg_text.strip_prefix("/d_") {
-                Download(item_uuid.to_string())
+                Download(item_uuid.into())
             } else if let Some(item_uuid) = msg_text.strip_prefix("/m_") {
-                GetLink(item_uuid.to_string())
+                GetLink(item_uuid.into())
             } else {
                 Help
             }
@@ -41,7 +41,8 @@ impl Input for TelegramInput {
     fn get_locale(&self) -> Locale {
         self.0.from()
             .and_then(|u| u.language_code.clone())
-            .unwrap_or_else(|| String::from("en"))
+            .map(|s| s.as_str().into())
+            .unwrap_or_else(|| "en".into())
     }
 }
 
