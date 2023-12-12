@@ -10,7 +10,7 @@ use crate::uuid_mapper::UuidMapper;
 pub struct RedisUuidMapper {
     client: redis::Client,
     sequence_start: usize,
-    key_expiration: usize
+    key_expiration: u64
 }
 
 const REDIS_SEQUENCE_START_ENV: &str = "REDIS_SEQUENCE_START";
