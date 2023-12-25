@@ -32,7 +32,7 @@ derive_more = "0.99.17"
 async-trait = "0.1.74"
 redis = { version = "0.24.0", features = ["tokio-comp"], optional = true }
 serde_json = { version = "1.0.108", features = [], optional = true }
-thiserror = "1.0.51"
+thiserror = "1.0.52"
 
 [dev-dependencies]
 temp-env = "0.3.6"
