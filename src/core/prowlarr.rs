@@ -225,7 +225,7 @@ mod test {
 
             assert_eq!(result.len(), 1);
 
-            let search_result = result.get(0).unwrap();
+            let search_result = result.first().unwrap();
             assert_eq!(search_result.guid, "101");
             assert_eq!(search_result.indexer_id, 1);
             assert_eq!(search_result.title, "Title");
