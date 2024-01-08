@@ -29,7 +29,7 @@ warp = "0.3.6"
 # todo replace with the package when https://github.com/angrynode/hightorrent/issues/2 is fixed:
 hightorrent = { git = "https://github.com/fertkir/hightorrent/" }
 derive_more = "0.99.17"
-async-trait = "0.1.76"
+async-trait = "0.1.77"
 redis = { version = "0.24.0", features = ["tokio-comp"], optional = true }
 serde_json = { version = "1.0.109", features = [], optional = true }
 thiserror = "1.0.56"
