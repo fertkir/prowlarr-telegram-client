@@ -19,7 +19,7 @@ env_logger = "0.11.1"
 rust-i18n = "2.3.1"
 reqwest = "0.11.23"
 serde = "1.0.196"
-chrono = { version = "0.4.31", features = ["serde"] }
+chrono = { version = "0.4.33", features = ["serde"] }
 byte-unit = "5.1.4"
 dashmap = "5.5.3"
 rand = "0.8.5"
