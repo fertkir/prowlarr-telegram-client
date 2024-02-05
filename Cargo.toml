@@ -17,7 +17,7 @@ tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
 log = "0.4.20"
 env_logger = "0.11.1"
 rust-i18n = "2.3.1"
-reqwest = "0.11.23"
+reqwest = "0.11.24"
 serde = "1.0.196"
 chrono = { version = "0.4.33", features = ["serde"] }
 byte-unit = "5.1.4"
