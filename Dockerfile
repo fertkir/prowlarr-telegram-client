@@ -4,6 +4,7 @@ WORKDIR /usr/src/app
 COPY . .
 RUN cargo install --path .
 
+
 FROM alpine:3.18
 RUN apk update --no-cache
 RUN adduser -D botuser
