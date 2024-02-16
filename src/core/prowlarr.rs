@@ -244,7 +244,7 @@ mod test {
         async fn download() {
             let mock_server = MockServer::start().await;
             Mock::given(method("POST"))
-                .and(header(CONTENT_TYPE, "application/json"))
+                .and(header(CONTENT_TYPE.as_str(), "application/json"))
                 .and(path("/api/v1/search"))
                 .and(query_param("apikey", "key123"))
                 .respond_with(ResponseTemplate::new(200))
@@ -278,7 +278,7 @@ mod test {
                 Mock::given(method("GET"))
                     .and(path("/content"))
                     .respond_with(ResponseTemplate::new(302)
-                        .append_header(LOCATION, magnet_link))
+                        .append_header(LOCATION.as_str(), magnet_link))
                     .mount(&mock_server)
                     .await;
 

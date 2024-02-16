@@ -19,7 +19,7 @@ env_logger = "0.11.1"
 rust-i18n = "2.3.1"
 reqwest = "0.11.24"
 serde = "1.0.196"
-chrono = { version = "0.4.33", features = ["serde"] }
+chrono = { version = "0.4.34", features = ["serde"] }
 byte-unit = "5.1.4"
 dashmap = "5.5.3"
 rand = "0.8.5"
@@ -32,10 +32,10 @@ derive_more = "0.99.17"
 async-trait = "0.1.77"
 redis = { version = "0.24.0", features = ["tokio-comp"], optional = true }
 serde_json = { version = "1.0.113", features = [], optional = true }
-thiserror = "1.0.56"
+thiserror = "1.0.57"
 
 [dev-dependencies]
 temp-env = "0.3.6"
 tempfile = "3.10.0"
-wiremock = "0.5.22"
+wiremock = "0.6.0"
 mockall = "0.12.1"
