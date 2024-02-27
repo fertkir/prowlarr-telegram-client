@@ -18,7 +18,7 @@ log = "0.4.20"
 env_logger = "0.11.2"
 rust-i18n = "2.3.1"
 reqwest = "0.11.24"
-serde = "1.0.196"
+serde = "1.0.197"
 chrono = { version = "0.4.34", features = ["serde"] }
 byte-unit = "5.1.4"
 dashmap = "5.5.3"
@@ -31,7 +31,7 @@ hightorrent = { git = "https://github.com/fertkir/hightorrent/" }
 derive_more = "0.99.17"
 async-trait = "0.1.77"
 redis = { version = "0.24.0", features = ["tokio-comp"], optional = true }
-serde_json = { version = "1.0.113", features = [], optional = true }
+serde_json = { version = "1.0.114", features = [], optional = true }
 thiserror = "1.0.57"
 
 [dev-dependencies]
