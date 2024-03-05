@@ -14,7 +14,7 @@ redis-storage = ["redis", "serde_json"]
 [dependencies]
 teloxide = { version = "0.12.2", features = ["webhooks", "webhooks-axum"] }
 tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
-log = "0.4.20"
+log = "0.4.21"
 env_logger = "0.11.2"
 rust-i18n = "2.3.1"
 reqwest = "0.11.24"
@@ -36,6 +36,6 @@ thiserror = "1.0.57"
 
 [dev-dependencies]
 temp-env = "0.3.6"
-tempfile = "3.10.0"
+tempfile = "3.10.1"
 wiremock = "0.6.0"
 mockall = "0.12.1"
