@@ -42,7 +42,7 @@ impl RedisUuidMapper {
 #[async_trait]
 impl<V: Serialize + Sync + Send + DeserializeOwned> UuidMapper<V> for RedisUuidMapper {
     async fn put_all(&self, values: Vec<V>) -> Result<Vec<String>, MapperError> where V: 'async_trait {
-        let mut con = self.client.get_async_connection().await?;
+        let mut con = self.client.get_multiplexed_async_connection().await?;
         let seq: Vec<usize> = redis::pipe().atomic()
             .set_nx(SEQUENCE_KEY, self.sequence_start.to_string()).ignore()
             .incr(SEQUENCE_KEY, values.len())
@@ -60,7 +60,7 @@ impl<V: Serialize + Sync + Send + DeserializeOwned> UuidMapper<V> for RedisUuidM
     }
 
     async fn get(&self, bot_uuid: &str) -> Result<Option<V>, MapperError> {
-        let mut con = self.client.get_async_connection().await?;
+        let mut con = self.client.get_multiplexed_async_connection().await?;
         let x: Option<String> = con.get(format!("{}:{}", UUID_KEY_PREFIX, bot_uuid)).await?;
         match x {
             None => Ok(None),
