@@ -17,7 +17,7 @@ tokio = { version = "1.37.0", features = ["rt-multi-thread", "macros"] }
 log = "0.4.21"
 env_logger = "0.11.3"
 rust-i18n = "2.3.1"
-reqwest = { version = "0.12.2", features = ["json"] }
+reqwest = { version = "0.12.3", features = ["json"] }
 serde = "1.0.197"
 chrono = { version = "0.4.37", features = ["serde"] }
 byte-unit = "5.1.4"
@@ -30,7 +30,7 @@ warp = "0.3.6"
 hightorrent = { git = "https://github.com/fertkir/hightorrent/" }
 derive_more = "0.99.17"
 async-trait = "0.1.79"
-redis = { version = "0.25.2", features = ["tokio-comp"], optional = true }
+redis = { version = "0.25.3", features = ["tokio-comp"], optional = true }
 serde_json = { version = "1.0.115", features = [], optional = true }
 thiserror = "1.0.58"
 
