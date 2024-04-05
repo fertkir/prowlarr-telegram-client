@@ -1,4 +1,7 @@
 name: Dependabot auto-merge
+
+# pull_request_target must be used instead of pull_request for repository secrets (e.g. PAT) to be accessible
+# https://github.com/dependabot/dependabot-core/issues/3253#issuecomment-852541544
 on: pull_request_target
 
 jobs:
@@ -18,4 +21,5 @@ jobs:
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
+          # a PAT must be used instead of a GITHUB_TOKEN for CI to be triggered after merge
           GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
