@@ -9,4 +9,3 @@ updates:
         update-types:
         - "minor"
         - "patch"
-# comment to trigger a scan
