@@ -16,7 +16,7 @@ teloxide = { version = "0.12.2", features = ["webhooks", "webhooks-axum"] }
 tokio = { version = "1.37.0", features = ["rt-multi-thread", "macros"] }
 log = "0.4.21"
 env_logger = "0.11.3"
-rust-i18n = "2.3.1"
+rust-i18n = "3.0.1"
 reqwest = { version = "0.12.3", features = ["json"] }
 serde = "1.0.197"
 chrono = { version = "0.4.37", features = ["serde"] }
@@ -25,7 +25,7 @@ dashmap = "5.5.3"
 rand = "0.8.5"
 bytes = "1.6.0"
 url = "2.5.0"
-warp = "0.3.6"
+warp = "0.3.7"
 # todo replace with the package when https://github.com/angrynode/hightorrent/issues/2 is fixed:
 hightorrent = { git = "https://github.com/fertkir/hightorrent/" }
 derive_more = "0.99.17"
