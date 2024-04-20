@@ -85,7 +85,7 @@ impl InputHandler {
                             .reduce(|acc, e| acc + &e);
                         match response {
                             None => {
-                                self.sender.send_plain_reply(destination, reply_to_message, &t!("no_results", locale = &locale, request = query)).await?;
+                                self.sender.send_plain_reply(destination, reply_to_message, &t!("no_results", locale = &locale)).await?;
                                 log::info!("  to {} | Sent \"No results\" response", destination);
                             }
                             Some(response) => {
