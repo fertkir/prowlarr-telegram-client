@@ -3,11 +3,11 @@ use bytes::Bytes;
 use teloxide::Bot;
 use teloxide::payloads::SendMessageSetters;
 use teloxide::prelude::Requester;
-use teloxide::types::{ChatAction, ChatId, InputFile, ParseMode};
+use teloxide::types::{ChatAction, ChatId, InputFile, MessageId, ParseMode};
 
 use crate::core::HandlingError;
 use crate::core::HandlingResult;
-use crate::core::traits::input::Destination;
+use crate::core::traits::input::{Destination, ReplyToMessage};
 use crate::core::traits::sender::Sender;
 
 #[derive(Clone)]
@@ -23,8 +23,9 @@ impl TelegramSender {
 
 #[async_trait]
 impl Sender for TelegramSender {
-    async fn send_message(&self, destination: Destination, message: &str) -> HandlingResult {
+    async fn send_reply(&self, destination: Destination, reply_to_message: ReplyToMessage, message: &str) -> HandlingResult {
         self.bot.send_message(ChatId(destination), message)
+            .reply_to_message_id(MessageId(reply_to_message))
             .parse_mode(ParseMode::MarkdownV2)
             .disable_web_page_preview(true)
             .await
@@ -41,6 +42,14 @@ impl Sender for TelegramSender {
 
     async fn send_plain_message(&self, destination: Destination, message: &str) -> HandlingResult {
         self.bot.send_message(ChatId(destination), message)
+            .await
+            .map(|_| {})
+            .map_err(|err| HandlingError::SendError(err.to_string()))
+    }
+
+    async fn send_plain_reply(&self, destination: Destination, reply_to_message: ReplyToMessage, message: &str) -> HandlingResult {
+        self.bot.send_message(ChatId(destination), message)
+            .reply_to_message_id(MessageId(reply_to_message))
             .await
             .map(|_| {})
             .map_err(|err| HandlingError::SendError(err.to_string()))

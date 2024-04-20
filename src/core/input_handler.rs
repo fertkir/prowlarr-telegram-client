@@ -6,7 +6,7 @@ use crate::core::downloads_tracker::DownloadsTracker;
 use crate::core::HandlingResult;
 use crate::core::prowlarr::{ProwlarrClient, SearchResult};
 use crate::core::torrent_meta::TorrentMeta;
-use crate::core::traits::input::{Command, Destination, Input, ItemUuid, Locale, SearchQuery, Source};
+use crate::core::traits::input::{Command, Destination, Input, ItemUuid, Locale, ReplyToMessage, SearchQuery, Source};
 use crate::core::traits::search_result_serializer::SearchResultSerializer;
 use crate::core::traits::sender::Sender;
 use crate::core::traits::uuid_mapper::{MapperError, UuidMapper};
@@ -44,10 +44,11 @@ impl InputHandler {
         let source = input.get_source();
         let destination = input.get_destination();
         let locale = input.get_locale();
+        let reply_to_message = input.get_reply_to_message();
         if self.allowed_users.is_empty() || self.allowed_users.contains(&source) {
             self.sender.send_progress_indication(destination).await?;
             match input.get_command() {
-                Command::Search(query) => self.search(source, destination, &locale, &query).await?,
+                Command::Search(query) => self.search(source, destination, reply_to_message, &locale, &query).await?,
                 Command::Download(uuid) => self.download(source, destination, &locale, &uuid).await?,
                 Command::GetLink(uuid) => self.link(source, destination, &locale, &uuid).await?,
                 Command::Help => self.sender.send_plain_message(destination, &t!("help", locale = &locale)).await?,
@@ -56,7 +57,13 @@ impl InputHandler {
         Ok(())
     }
 
-    async fn search(&self, source: Source, destination: Destination, locale: &Locale, query: &SearchQuery) -> HandlingResult {
+    async fn search(&self,
+                    source: Source,
+                    destination: Destination,
+                    reply_to_message: ReplyToMessage,
+                    locale: &Locale,
+                    query: &SearchQuery
+    ) -> HandlingResult {
         log::info!("from {} | Received search request \"{}\"", source, query);
         match self.prowlarr.search(query).await {
             Ok(results) => {
@@ -78,11 +85,11 @@ impl InputHandler {
                             .reduce(|acc, e| acc + &e);
                         match response {
                             None => {
-                                self.sender.send_plain_message(destination, &t!("no_results", locale = &locale, request = query)).await?;
+                                self.sender.send_plain_reply(destination, reply_to_message, &t!("no_results", locale = &locale, request = query)).await?;
                                 log::info!("  to {} | Sent \"No results\" response", destination);
                             }
                             Some(response) => {
-                                self.sender.send_message(destination, &response).await?;
+                                self.sender.send_reply(destination, reply_to_message, &response).await?;
                                 log::info!("  to {} | Sent search response \"{}\"", destination, to_digest(&response));
                             }
                         }

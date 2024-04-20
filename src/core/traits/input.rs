@@ -1,6 +1,7 @@
 pub type SearchQuery = Box<str>;
 pub type Source = u64;
 pub type Destination = i64;
+pub type ReplyToMessage = i32;
 pub type ItemUuid = Box<str>;
 pub type Locale = Box<str>;
 
@@ -15,5 +16,6 @@ pub trait Input: Send + Sync {
     fn get_command(&self) -> Command;
     fn get_source(&self) -> Source;
     fn get_destination(&self) -> Destination;
+    fn get_reply_to_message(&self) -> ReplyToMessage;
     fn get_locale(&self) -> Locale;
 }

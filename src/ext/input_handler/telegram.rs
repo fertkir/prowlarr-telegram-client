@@ -8,7 +8,7 @@ use teloxide::update_listeners::webhooks;
 
 use crate::core::HandlingResult;
 use crate::core::input_handler::InputHandler;
-use crate::core::traits::input::{Command, Destination, Input, Locale, Source};
+use crate::core::traits::input::{Command, Destination, Input, Locale, ReplyToMessage, Source};
 use crate::core::traits::input::Command::{Download, GetLink, Help, Search};
 use crate::core::util;
 
@@ -36,6 +36,10 @@ impl Input for TelegramInput {
 
     fn get_destination(&self) -> Destination {
         self.0.chat.id.0
+    }
+
+    fn get_reply_to_message(&self) -> ReplyToMessage {
+        self.0.id.0
     }
 
     fn get_locale(&self) -> Locale {
