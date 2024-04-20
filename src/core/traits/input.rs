@@ -8,8 +8,7 @@ pub enum Command {
     Search(SearchQuery),
     GetLink(ItemUuid),
     Download(ItemUuid),
-    Help,
-    Ignore
+    Help
 }
 
 pub trait Input: Send + Sync {

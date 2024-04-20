@@ -45,14 +45,12 @@ impl InputHandler {
         let destination = input.get_destination();
         let locale = input.get_locale();
         if self.allowed_users.is_empty() || self.allowed_users.contains(&source) {
+            self.sender.send_progress_indication(destination).await?;
             match input.get_command() {
                 Command::Search(query) => self.search(source, destination, &locale, &query).await?,
                 Command::Download(uuid) => self.download(source, destination, &locale, &uuid).await?,
                 Command::GetLink(uuid) => self.link(source, destination, &locale, &uuid).await?,
                 Command::Help => self.sender.send_plain_message(destination, &t!("help", locale = &locale)).await?,
-                Command::Ignore => {
-                    // do nothing
-                }
             }
         }
         Ok(())
@@ -60,7 +58,6 @@ impl InputHandler {
 
     async fn search(&self, source: Source, destination: Destination, locale: &Locale, query: &SearchQuery) -> HandlingResult {
         log::info!("from {} | Received search request \"{}\"", source, query);
-        self.sender.send_progress_indication(destination).await?;
         match self.prowlarr.search(query).await {
             Ok(results) => {
                 let first_n_sorted_results: Vec<SearchResult> = sorted_by_seeders(results)

@@ -9,7 +9,7 @@ use teloxide::update_listeners::webhooks;
 use crate::core::HandlingResult;
 use crate::core::input_handler::InputHandler;
 use crate::core::traits::input::{Command, Destination, Input, Locale, Source};
-use crate::core::traits::input::Command::{Download, GetLink, Help, Ignore, Search};
+use crate::core::traits::input::Command::{Download, GetLink, Help, Search};
 use crate::core::util;
 
 struct TelegramInput(Message);
@@ -27,7 +27,7 @@ impl Input for TelegramInput {
                 Help
             }
         }
-        Ignore
+        Help
     }
 
     fn get_source(&self) -> Source {
