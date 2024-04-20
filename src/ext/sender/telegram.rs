@@ -3,7 +3,7 @@ use bytes::Bytes;
 use teloxide::Bot;
 use teloxide::payloads::SendMessageSetters;
 use teloxide::prelude::Requester;
-use teloxide::types::{ChatId, InputFile, ParseMode};
+use teloxide::types::{ChatAction, ChatId, InputFile, ParseMode};
 
 use crate::core::HandlingError;
 use crate::core::HandlingResult;
@@ -27,6 +27,13 @@ impl Sender for TelegramSender {
         self.bot.send_message(ChatId(destination), message)
             .parse_mode(ParseMode::MarkdownV2)
             .disable_web_page_preview(true)
+            .await
+            .map(|_| {})
+            .map_err(|err| HandlingError::SendError(err.to_string()))
+    }
+
+    async fn send_progress_indication(&self, destination: Destination) -> HandlingResult {
+        self.bot.send_chat_action(ChatId(destination), ChatAction::Typing)
             .await
             .map(|_| {})
             .map_err(|err| HandlingError::SendError(err.to_string()))

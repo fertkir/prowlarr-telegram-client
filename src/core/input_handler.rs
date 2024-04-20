@@ -1,15 +1,15 @@
 use std::fmt::Display;
 use std::sync::Arc;
 
+use crate::core::download_meta::{DownloadMeta, DownloadMetaProvider};
 use crate::core::downloads_tracker::DownloadsTracker;
 use crate::core::HandlingResult;
 use crate::core::prowlarr::{ProwlarrClient, SearchResult};
+use crate::core::torrent_meta::TorrentMeta;
 use crate::core::traits::input::{Command, Destination, Input, ItemUuid, Locale, SearchQuery, Source};
 use crate::core::traits::search_result_serializer::SearchResultSerializer;
 use crate::core::traits::sender::Sender;
 use crate::core::traits::uuid_mapper::{MapperError, UuidMapper};
-use crate::core::download_meta::{DownloadMeta, DownloadMetaProvider};
-use crate::core::torrent_meta::TorrentMeta;
 
 pub struct InputHandler {
     prowlarr: ProwlarrClient,
@@ -60,6 +60,7 @@ impl InputHandler {
 
     async fn search(&self, source: Source, destination: Destination, locale: &Locale, query: &SearchQuery) -> HandlingResult {
         log::info!("from {} | Received search request \"{}\"", source, query);
+        self.sender.send_progress_indication(destination).await?;
         match self.prowlarr.search(query).await {
             Ok(results) => {
                 let first_n_sorted_results: Vec<SearchResult> = sorted_by_seeders(results)
@@ -102,7 +103,7 @@ impl InputHandler {
                                    locale: &Locale,
                                    err: impl Display) -> HandlingResult {
         log::error!("  to {} | Error when interacting with Prowlarr: {}", destination, err);
-        self.sender.send_message(destination, &t!("prowlarr_error", locale = &locale)).await
+        self.sender.send_plain_message(destination, &t!("prowlarr_error", locale = &locale)).await
     }
 
     async fn handle_mapper_error(&self,
@@ -110,7 +111,7 @@ impl InputHandler {
                                  locale: &Locale,
                                  err: MapperError) -> HandlingResult {
         log::error!("  to {} | {}", destination, err);
-        self.sender.send_message(destination, &t!("mapper_error", locale = locale)).await
+        self.sender.send_plain_message(destination, &t!("mapper_error", locale = locale)).await
     }
 
     async fn download(&self, source: Source, destination: Destination, locale: &Locale, uuid: &ItemUuid) -> HandlingResult {
@@ -122,7 +123,7 @@ impl InputHandler {
                     match self.prowlarr.download(&meta.indexer_id, &meta.guid).await {
                         Ok(response) => {
                             if response.status().is_success() {
-                                self.sender.send_message(destination, &t!("sent_to_download", locale = &locale)).await?;
+                                self.sender.send_plain_message(destination, &t!("sent_to_download", locale = &locale)).await?;
                                 log::info!("  to {} | Sent {} for downloading", destination, meta);
                                 match meta.get_torrent_hash(&self.prowlarr).await {
                                     Ok(hash) => self.downloads_tracker.add(hash, destination, locale.clone()),
@@ -133,7 +134,7 @@ impl InputHandler {
                             } else {
                                 log::error!("  to {} | Download response from Prowlarr wasn't successful: {} {}",
                                     destination, response.status(), response.text().await.unwrap_or_default());
-                                self.sender.send_message(destination, &t!("could_not_send_to_download", locale = &locale)).await?;
+                                self.sender.send_plain_message(destination, &t!("could_not_send_to_download", locale = &locale)).await?;
                             }
                         }
                         Err(err) => self.handle_prowlarr_error(destination, locale, err).await?
@@ -172,7 +173,7 @@ impl InputHandler {
                         }
                     } else {
                         log::warn!("  to {} | Neither magnet nor download link exist for torrent {}", destination, torrent_data);
-                        self.sender.send_message(destination, &t!("link_not_found", locale = &locale)).await?;
+                        self.sender.send_plain_message(destination, &t!("link_not_found", locale = &locale)).await?;
                     }
                 }
             }
@@ -183,7 +184,7 @@ impl InputHandler {
 
     async fn link_not_found(&self, destination: Destination, locale: &Locale, uuid: &ItemUuid) -> HandlingResult {
         log::warn!("  to {} | Link for uuid {} not found", destination, &uuid);
-        self.sender.send_message(destination, &t!("link_not_found", locale = locale)).await?;
+        self.sender.send_plain_message(destination, &t!("link_not_found", locale = locale)).await?;
         Ok(())
     }
 }

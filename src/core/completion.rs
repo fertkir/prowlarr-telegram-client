@@ -24,7 +24,7 @@ pub async fn notify(request: CompletionRequest,
         let chat_id = user.destination;
         let locale = user.locale.clone();
         task::spawn(async move {
-            match sender.send_message(chat_id, &t!("download_complete", locale = &locale, name = download_name)).await {
+            match sender.send_plain_message(chat_id, &t!("download_complete", locale = &locale, name = download_name)).await {
                 Ok(_) => {
                     log::info!("userId {} | Sent download complete notification for \"{}\"", chat_id, download_name);
                 }
