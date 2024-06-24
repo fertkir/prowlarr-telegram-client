@@ -24,7 +24,7 @@ byte-unit = "5.1.4"
 dashmap = "5.5.3"
 rand = "0.8.5"
 bytes = "1.6.0"
-url = "2.5.1"
+url = "2.5.2"
 warp = "0.3.7"
 # todo replace with the package when https://github.com/angrynode/hightorrent/issues/2 is fixed:
 hightorrent = { git = "https://github.com/fertkir/hightorrent/" }
