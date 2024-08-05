@@ -297,13 +297,12 @@ dependencies = [
 
 [[package]]
 name = "bt_bencode"
-version = "0.7.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95ae80cb913f1ad6c69bd727bb6783733f2d371f2b00a2c7674810b2f5e42276"
+checksum = "b053353330a01eaf38e90ab7a87cbe6caa5e4d073e37bfb559c2311b95857624"
 dependencies = [
  "itoa",
  "serde",
- "serde_bytes",
 ]
 
 [[package]]
@@ -930,7 +929,7 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 [[package]]
 name = "hightorrent"
 version = "0.1.0"
-source = "git+https://github.com/fertkir/hightorrent/#f31fa2525a08ceee13231a7f70d8ad232d055a43"
+source = "git+https://github.com/fertkir/hightorrent/#1dc5e383ba3b0b01e979f0b25c15a5ed75576891"
 dependencies = [
  "bt_bencode",
  "rustc-hex",
@@ -2168,15 +2167,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc76f558e0cbb2a839d37354c575f1dc3fdc6546b5be373ba43d95f231bf7c12"
 dependencies = [
  "serde_derive",
-]
-
-[[package]]
-name = "serde_bytes"
-version = "0.11.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab33ec92f677585af6d88c65593ae2375adde54efdbf16d597f2cbc7a6d368ff"
-dependencies = [
- "serde",
 ]
 
 [[package]]
