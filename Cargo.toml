@@ -16,9 +16,9 @@ teloxide = { version = "0.12.2", features = ["webhooks", "webhooks-axum"] }
 tokio = { version = "1.39.2", features = ["rt-multi-thread", "macros"] }
 log = "0.4.22"
 env_logger = "0.11.5"
-rust-i18n = "3.0.1"
+rust-i18n = "3.1.1"
 reqwest = { version = "0.12.5", features = ["json"] }
-serde = "1.0.204"
+serde = "1.0.207"
 chrono = { version = "0.4.38", features = ["serde"] }
 byte-unit = "5.1.4"
 dashmap = "6.0.1"
@@ -31,7 +31,7 @@ hightorrent = { git = "https://github.com/fertkir/hightorrent/" }
 derive_more = "0.99.18"
 async-trait = "0.1.81"
 redis = { version = "0.25.4", features = ["tokio-comp"], optional = true }
-serde_json = { version = "1.0.122", features = [], optional = true }
+serde_json = { version = "1.0.124", features = [], optional = true }
 thiserror = "1.0.63"
 
 [dev-dependencies]
