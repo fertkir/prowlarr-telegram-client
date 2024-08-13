@@ -6,7 +6,7 @@ use crate::core::prowlarr::SearchResult;
 use crate::core::download_meta::{DownloadMeta, DownloadMetaProvider};
 
 #[derive(Clone, Display, Serialize, Deserialize)]
-#[display(fmt = "{{ indexer_id: {}, guid: {} }}", indexer_id, guid)]
+#[display("{{ indexer_id: {}, guid: {} }}", indexer_id, guid)]
 pub struct TorrentMeta {
     pub guid: String,
     pub indexer_id: u8,

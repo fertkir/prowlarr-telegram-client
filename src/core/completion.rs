@@ -8,7 +8,7 @@ use crate::core::downloads_tracker::DownloadsTracker;
 use crate::core::traits::sender::Sender;
 
 #[derive(Deserialize, Display)]
-#[display(fmt = "{{ hash: {}, name: {} }}", hash, name)]
+#[display("{{ hash: {}, name: {} }}", hash, name)]
 pub struct CompletionRequest {
     hash: String,
     name: String,

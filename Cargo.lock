@@ -569,6 +569,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.48",
+ "unicode-xid",
 ]
 
 [[package]]
@@ -2878,6 +2879,12 @@ checksum = "a56d1686db2308d901306f92a263857ef59ea39678a5458e7cb17f01415101f5"
 dependencies = [
  "tinyvec",
 ]
+
+[[package]]
+name = "unicode-xid"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f962df74c8c05a667b5ee8bcf162993134c104e96440b663c8daa176dc772d8c"
 
 [[package]]
 name = "untrusted"
