@@ -1,16 +1,16 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use teloxide::{Bot, dptree};
 use teloxide::dispatching::{Dispatcher, UpdateFilterExt};
 use teloxide::prelude::{LoggingErrorHandler, Message, Update};
 use teloxide::update_listeners::webhooks;
+use teloxide::{dptree, Bot};
 
-use crate::core::HandlingResult;
 use crate::core::input_handler::InputHandler;
-use crate::core::traits::input::{Command, Destination, Input, Locale, ReplyToMessage, Source};
 use crate::core::traits::input::Command::{Download, GetLink, Help, Search};
+use crate::core::traits::input::{Command, Destination, Input, Locale, ReplyToMessage, Source};
 use crate::core::util;
+use crate::core::HandlingResult;
 
 struct TelegramInput(Message);
 
@@ -31,7 +31,7 @@ impl Input for TelegramInput {
     }
 
     fn get_source(&self) -> Source {
-        self.0.from().map(|from| from.id.0).unwrap_or_default()
+        self.0.from.as_ref().map(|from| from.id.0).unwrap_or_default()
     }
 
     fn get_destination(&self) -> Destination {
@@ -43,7 +43,7 @@ impl Input for TelegramInput {
     }
 
     fn get_locale(&self) -> Locale {
-        self.0.from()
+        self.0.from.as_ref()
             .and_then(|u| u.language_code.clone())
             .map(|s| s.as_str().into())
             .unwrap_or_else(|| "en".into())

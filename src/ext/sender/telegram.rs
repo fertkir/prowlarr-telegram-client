@@ -1,14 +1,14 @@
 use async_trait::async_trait;
 use bytes::Bytes;
-use teloxide::Bot;
 use teloxide::payloads::SendMessageSetters;
 use teloxide::prelude::Requester;
-use teloxide::types::{ChatAction, ChatId, InputFile, MessageId, ParseMode};
+use teloxide::types::{ChatAction, ChatId, InputFile, LinkPreviewOptions, MessageId, ParseMode, ReplyParameters};
+use teloxide::Bot;
 
-use crate::core::HandlingError;
-use crate::core::HandlingResult;
 use crate::core::traits::input::{Destination, ReplyToMessage};
 use crate::core::traits::sender::Sender;
+use crate::core::HandlingError;
+use crate::core::HandlingResult;
 
 #[derive(Clone)]
 pub struct TelegramSender {
@@ -25,9 +25,15 @@ impl TelegramSender {
 impl Sender for TelegramSender {
     async fn send_reply(&self, destination: Destination, reply_to_message: ReplyToMessage, message: &str) -> HandlingResult {
         self.bot.send_message(ChatId(destination), message)
-            .reply_to_message_id(MessageId(reply_to_message))
+            .reply_parameters(ReplyParameters::new(MessageId(reply_to_message)))
             .parse_mode(ParseMode::MarkdownV2)
-            .disable_web_page_preview(true)
+            .link_preview_options(LinkPreviewOptions {
+                is_disabled: true,
+                url: None,
+                prefer_small_media: false,
+                prefer_large_media: false,
+                show_above_text: false,
+            })
             .await
             .map(|_| {})
             .map_err(|err| HandlingError::SendError(err.to_string()))
@@ -49,7 +55,7 @@ impl Sender for TelegramSender {
 
     async fn send_plain_reply(&self, destination: Destination, reply_to_message: ReplyToMessage, message: &str) -> HandlingResult {
         self.bot.send_message(ChatId(destination), message)
-            .reply_to_message_id(MessageId(reply_to_message))
+            .reply_parameters(ReplyParameters::new(MessageId(reply_to_message)))
             .await
             .map(|_| {})
             .map_err(|err| HandlingError::SendError(err.to_string()))
