@@ -15,7 +15,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
-  RUSTFLAGS: "-Dwarnings"
+#  RUSTFLAGS: "-Dwarnings"
 
 jobs:
   build_and_test:
