@@ -20,18 +20,18 @@ rust-i18n = "3.1.2"
 reqwest = { version = "0.12.9", features = ["json"] }
 serde = "1.0.214"
 chrono = { version = "0.4.38", features = ["serde"] }
-byte-unit = "5.1.4"
+byte-unit = "5.1.6"
 dashmap = "6.1.0"
 rand = "0.8.5"
 bytes = "1.8.0"
-url = "2.5.2"
+url = "2.5.3"
 warp = "0.3.7"
 hightorrent = "0.2.0"
 derive_more = { version = "1.0.0", features = ["display"] }
 async-trait = "0.1.83"
 redis = { version = "0.25.4", features = ["tokio-comp"], optional = true }
 serde_json = { version = "1.0.132", features = [], optional = true }
-thiserror = "1.0.65"
+thiserror = "1.0.68"
 
 [dev-dependencies]
 temp-env = "0.3.6"
