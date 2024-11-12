@@ -31,7 +31,7 @@ derive_more = { version = "1.0.0", features = ["display"] }
 async-trait = "0.1.83"
 redis = { version = "0.25.4", features = ["tokio-comp"], optional = true }
 serde_json = { version = "1.0.132", features = [], optional = true }
-thiserror = "1.0.68"
+thiserror = "2.0.3"
 
 [dev-dependencies]
 temp-env = "0.3.6"
