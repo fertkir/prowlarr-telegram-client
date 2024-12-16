@@ -18,7 +18,7 @@ log = "0.4.22"
 env_logger = "0.11.5"
 rust-i18n = "3.1.2"
 reqwest = { version = "0.12.9", features = ["json"] }
-serde = "1.0.215"
+serde = "1.0.216"
 chrono = { version = "0.4.39", features = ["serde"] }
 byte-unit = "5.1.6"
 dashmap = "6.1.0"
@@ -31,7 +31,7 @@ derive_more = { version = "1.0.0", features = ["display"] }
 async-trait = "0.1.83"
 redis = { version = "0.25.4", features = ["tokio-comp"], optional = true }
 serde_json = { version = "1.0.133", features = [], optional = true }
-thiserror = "2.0.6"
+thiserror = "2.0.7"
 
 [dev-dependencies]
 temp-env = "0.3.6"
