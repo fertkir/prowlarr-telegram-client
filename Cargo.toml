@@ -28,7 +28,7 @@ url = "2.5.4"
 warp = "0.3.7"
 hightorrent = "0.2.0"
 derive_more = { version = "1.0.0", features = ["display"] }
-async-trait = "0.1.83"
+async-trait = "0.1.85"
 redis = { version = "0.25.4", features = ["tokio-comp"], optional = true }
 serde_json = { version = "1.0.134", features = [], optional = true }
 thiserror = "2.0.9"
