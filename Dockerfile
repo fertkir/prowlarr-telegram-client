@@ -1,11 +1,11 @@
-FROM rust:1.78-alpine3.20 as builder
+FROM rust:1.84.0-alpine3.21 as builder
 RUN apk add --no-cache musl-dev openssl-dev libc6-compat openssl-libs-static
 WORKDIR /usr/src/app
 COPY . .
 RUN cargo install --path .
 
 
-FROM alpine:3.20
+FROM alpine:3.21
 RUN apk update --no-cache
 RUN adduser -D botuser
 USER botuser
