@@ -2,7 +2,7 @@ use std::sync::atomic::{AtomicU32, Ordering};
 
 use async_trait::async_trait;
 use dashmap::DashMap;
-use rand::distributions::Alphanumeric;
+use rand::distr::Alphanumeric;
 use rand::Rng;
 
 use crate::core::traits::uuid_mapper::{MapperError, UuidMapper};
@@ -19,7 +19,7 @@ const MAX_CACHE_SIZE: u32 = 10_000;
 impl<V: Clone> InMemoryUuidMapper<V> {
     pub fn new() -> InMemoryUuidMapper<V> {
         InMemoryUuidMapper {
-            session_key: rand::thread_rng()
+            session_key: rand::rng()
                 .sample_iter(&Alphanumeric)
                 .take(UUID_RANDOM_PART_LENGTH)
                 .map(char::from)
