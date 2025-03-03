@@ -19,7 +19,7 @@ env_logger = "0.11.6"
 rust-i18n = "3.1.2"
 reqwest = { version = "0.12.9", features = ["json"] }
 serde = "1.0.218"
-chrono = { version = "0.4.39", features = ["serde"] }
+chrono = { version = "0.4.40", features = ["serde"] }
 byte-unit = "5.1.6"
 dashmap = "6.1.0"
 rand = "0.9.0"
@@ -28,13 +28,13 @@ url = "2.5.4"
 warp = "0.3.7"
 hightorrent = "0.2.0"
 derive_more = { version = "2.0.1", features = ["display"] }
-async-trait = "0.1.86"
+async-trait = "0.1.87"
 redis = { version = "0.25.4", features = ["tokio-comp"], optional = true }
-serde_json = { version = "1.0.139", features = [], optional = true }
-thiserror = "2.0.11"
+serde_json = { version = "1.0.140", features = [], optional = true }
+thiserror = "2.0.12"
 
 [dev-dependencies]
 temp-env = "0.3.6"
 tempfile = "3.10.1"
-wiremock = "0.6.2"
+wiremock = "0.6.3"
 mockall = "0.13.1"
