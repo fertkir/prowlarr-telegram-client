@@ -1,9 +1,9 @@
-use std::fs;
+use std::{env, fs};
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use reqwest::{Client, Response};
 use reqwest::header::{CONTENT_TYPE, LOCATION};
+use reqwest::{Client, Response};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -12,6 +12,7 @@ use crate::core::download_meta::{DownloadMeta, DownloadMetaProvider};
 pub struct ProwlarrClient {
     api_key: String,
     base_url: Url,
+    indexer_id_params: String,
     client: Client,
 }
 
@@ -41,12 +42,14 @@ struct DownloadParams<'a> {
 const PROWLARR_API_KEY_ENV: &str = "PROWLARR_API_KEY";
 const PROWLARR_API_KEY_FILE_ENV: &str = "PROWLARR_API_KEY_FILE";
 const PROWLARR_BASE_URL_ENV: &str = "PROWLARR_BASE_URL";
+const PROWLARR_INDEXER_IDS_ENV: &str = "PROWLARR_INDEXER_IDS";
 
 impl ProwlarrClient {
     pub fn from_env() -> ProwlarrClient {
         ProwlarrClient {
             api_key: get_api_key(),
             base_url: ProwlarrClient::parse_base_url(),
+            indexer_id_params: ProwlarrClient::get_indexer_id_params(),
             client: Client::new(),
         }
     }
@@ -58,9 +61,27 @@ impl ProwlarrClient {
                 panic!("Could not parse {}: {}: \"{}\"", PROWLARR_BASE_URL_ENV, err, url_string))
     }
 
+    fn get_indexer_id_params() -> String {
+        let params = env::var(PROWLARR_INDEXER_IDS_ENV)
+            .unwrap_or_default()
+            .split(',')
+            .filter(|indexer_id| !indexer_id.is_empty())
+            .map(|user| user.parse::<u32>()
+                .unwrap_or_else(|_| panic!("{} list must be a comma-separated \
+                string of integers. Value \"{}\" is unexpected", PROWLARR_INDEXER_IDS_ENV, user)))
+            .map(|n| format!("indexerIds={}", n))
+            .collect::<Vec<String>>()
+            .join("&");
+        if params.is_empty() {
+            params
+        } else {
+            format!("&{}", params)
+        }
+    }
+
     pub async fn search(&self, query: &str) -> reqwest::Result<Vec<SearchResult>> {
-        self.client.get(format!("{}api/v1/search?apikey={}&query={}",
-                                self.base_url, self.api_key, query))
+        self.client.get(format!("{}api/v1/search?apikey={}&query={}{}",
+                                self.base_url, self.api_key, query, self.indexer_id_params))
             .send()
             .await?
             .json::<Vec<SearchResult>>()
@@ -109,13 +130,13 @@ fn replace_base_url(url: &str, base_url: &Url) -> Result<String, String> {
 }
 
 fn get_env(env: &str) -> String {
-    std::env::var(env).unwrap_or_else(|_| panic!("Cannot get the {env} env variable"))
+    env::var(env).unwrap_or_else(|_| panic!("Cannot get the {env} env variable"))
 }
 
 fn get_api_key() -> String {
-    if let Ok(api_key) = std::env::var(PROWLARR_API_KEY_ENV) {
+    if let Ok(api_key) = env::var(PROWLARR_API_KEY_ENV) {
         api_key
-    } else if let Ok(api_key_file) = std::env::var(PROWLARR_API_KEY_FILE_ENV) {
+    } else if let Ok(api_key_file) = env::var(PROWLARR_API_KEY_FILE_ENV) {
         fs::read_to_string(api_key_file.clone())
             .unwrap_or_else(|_| panic!("Could not read {PROWLARR_API_KEY_FILE_ENV} file {api_key_file}"))
     } else {
@@ -126,9 +147,9 @@ fn get_api_key() -> String {
 #[cfg(test)]
 mod test {
     mod get_api_key {
+        use crate::core::prowlarr::{get_api_key, PROWLARR_API_KEY_ENV, PROWLARR_API_KEY_FILE_ENV};
         use std::fs::File;
         use std::io::Write;
-        use crate::core::prowlarr::{get_api_key, PROWLARR_API_KEY_ENV, PROWLARR_API_KEY_FILE_ENV};
 
         #[test]
         fn from_env_var() {
@@ -184,12 +205,12 @@ mod test {
     }
 
     mod client {
+        use crate::core::prowlarr::{ProwlarrClient, PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV};
         use chrono::DateTime;
         use reqwest::header::CONTENT_TYPE;
         use reqwest::StatusCode;
-        use wiremock::{Mock, MockServer, ResponseTemplate};
         use wiremock::matchers::{header, method, path, query_param};
-        use crate::core::prowlarr::{PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV, ProwlarrClient};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
 
         #[test]
         #[should_panic(expected = "Could not parse PROWLARR_BASE_URL: relative URL without a base: \"incorrect_url\"")]
@@ -262,10 +283,10 @@ mod test {
         }
 
         mod download_url_content {
+            use crate::core::prowlarr::{ProwlarrClient, PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV};
             use reqwest::header::LOCATION;
-            use wiremock::{Mock, MockServer, ResponseTemplate};
             use wiremock::matchers::{method, path};
-            use crate::core::prowlarr::{PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV, ProwlarrClient};
+            use wiremock::{Mock, MockServer, ResponseTemplate};
 
             use crate::core::download_meta::{DownloadMeta, DownloadMetaProvider};
 

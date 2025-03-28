@@ -19,6 +19,7 @@ Configuration is done through environment variables.
 | PROWLARR_API_KEY      | API key to access Prowlarr.                                                                                  | if PROWLARR_API_KEY_FILE isn't set   |                 |
 | PROWLARR_API_KEY_FILE | Path to a file with API key to access Prowlarr.                                                              | if PROWLARR_API_KEY isn't set        |                 |
 | PROWLARR_BASE_URL     | e.g. http://localhost:9696                                                                                   |                                      |                 |
+| PROWLARR_INDEXER_IDS  | Comma separated list of Prowlarr indexer ids to use.                                                         |                                      |                 |
 | REDIS_URL             | Redis URL, to use as a store for link mappings. If not set, a non-persistent in-memory storage will be used. |                                      |                 |
 | REDIS_SEQUENCE_START  | First id value to use.                                                                                       |                                      | 1000            |
 | REDIS_KEY_EXPIRATION  | When mappings will expire.                                                                                   |                                      | 604800 (1 week) |
