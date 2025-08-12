@@ -18,12 +18,14 @@ pub async fn run(sender: Arc<dyn Sender>, downloads_tracker: Arc<DownloadsTracke
             .and(warp::any().map(move || sender.clone()))
             .then(completion);
         let addr = SocketAddr::new(util::parse_ip("COMPLETE_IP"), port.parse().unwrap());
-        let (_, fut) = warp::serve(filter)
-            .bind_with_graceful_shutdown(addr, async move {
+        let fut = warp::serve(filter)
+            .bind(addr).await
+            .graceful(async {
                 tokio::signal::ctrl_c()
                     .await
                     .expect("failed to listen to shutdown signal");
-            });
+            })
+            .run();
         log::info!("Server::run; addr={}", addr);
         log::info!("listening on http://{}", addr);
         fut.await;
