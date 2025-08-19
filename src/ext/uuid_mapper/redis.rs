@@ -55,7 +55,7 @@ impl<V: Serialize + Sync + Send + DeserializeOwned> UuidMapper<V> for RedisUuidM
             let value = serde_json::to_string(value)?;
             pipe.set_ex(key, value, self.key_expiration).ignore();
         }
-        pipe.query_async::<_, ()>(&mut con).await?;
+        pipe.query_async::<()>(&mut con).await?;
         Ok((offset..(values.len() + offset)).map(|a|a.to_string()).collect())
     }
 
