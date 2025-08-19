@@ -12,7 +12,7 @@ default = []
 redis-storage = ["redis", "serde_json"]
 
 [dependencies]
-teloxide = { version = "0.13.0", features = ["webhooks", "webhooks-axum"] }
+teloxide = { version = "0.17.0", features = ["webhooks", "webhooks-axum"] }
 tokio = { version = "1.47.1", features = ["rt-multi-thread", "macros"] }
 log = "0.4.27"
 env_logger = "0.11.8"
@@ -28,10 +28,10 @@ url = "2.5.4"
 warp = { version = "0.4.1", features = ["server"] }
 hightorrent = "0.2.0"
 derive_more = { version = "2.0.1", features = ["display"] }
-async-trait = "0.1.88"
-redis = { version = "0.25.4", features = ["tokio-comp"], optional = true }
+async-trait = "0.1.89"
+redis = { version = "0.32.5", features = ["tokio-comp"], optional = true }
 serde_json = { version = "1.0.142", features = [], optional = true }
-thiserror = "2.0.14"
+thiserror = "2.0.15"
 
 [dev-dependencies]
 temp-env = "0.3.6"
