@@ -18,7 +18,7 @@ log = "0.4.28"
 env_logger = "0.11.8"
 rust-i18n = "3.1.5"
 reqwest = { version = "0.12.23", default-features = false, features = ["json", "rustls-tls"]  }
-serde = "1.0.224"
+serde = "1.0.226"
 chrono = { version = "0.4.42", features = ["serde"] }
 byte-unit = "5.1.6"
 dashmap = "6.1.0"
