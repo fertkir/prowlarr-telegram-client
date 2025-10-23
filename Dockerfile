@@ -7,6 +7,6 @@ ENV RUSTFLAGS='-C target-feature=-crt-static'
 RUN cargo build --release
 
 FROM alpine:3.22
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libgcc libc6-compat
 COPY --from=builder /usr/src/app/target/release/prowlarr-telegram-client /usr/local/bin/
 ENTRYPOINT ["/usr/local/bin/prowlarr-telegram-client"]
