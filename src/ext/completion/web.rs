@@ -1,6 +1,6 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
-use tokio::signal::unix::{signal, SignalKind};
+
 use warp::Filter;
 use warp::reply::WithStatus;
 
@@ -20,7 +20,11 @@ pub async fn run(sender: Arc<dyn Sender>, downloads_tracker: Arc<DownloadsTracke
         let addr = SocketAddr::new(util::parse_ip("COMPLETE_IP"), port.parse().unwrap());
         let fut = warp::serve(filter)
             .bind(addr).await
-            .graceful(wait_for_shutdown())
+            .graceful(async {
+                tokio::signal::ctrl_c()
+                    .await
+                    .expect("failed to listen to shutdown signal");
+            })
             .run();
         log::info!("Server::run; addr={}", addr);
         log::info!("listening on http://{}", addr);
@@ -33,37 +37,4 @@ async fn completion(request: CompletionRequest,
                     sender: Arc<dyn Sender>) -> WithStatus<String> {
     completion::notify(request, downloads_tracker, sender).await;
     warp::reply::with_status(String::new(), warp::http::StatusCode::ACCEPTED)
-}
-
-#[cfg(unix)]
-async fn wait_for_shutdown() {
-    let ctrl_c = tokio::signal::ctrl_c();
-    let mut sigterm = match signal(SignalKind::terminate()) {
-        Ok(s) => s,
-        Err(e) => {
-            log::error!("Failed to create SIGTERM signal handler: {}", e);
-            // On failure, just wait for Ctrl+C
-            ctrl_c.await.unwrap();
-            return;
-        }
-    };
-
-    tokio::select! {
-        // Wait for Ctrl+C
-        _ = ctrl_c => {
-            log::info!("Received SIGINT (Ctrl+C). Shutting down...");
-        },
-        // Wait for SIGTERM
-        _ = sigterm.recv() => {
-            log::info!("Received SIGTERM. Shutting down...");
-        },
-    }
-}
-
-#[cfg(not(unix))]
-async fn wait_for_shutdown() {
-    tokio::signal::ctrl_c()
-        .await
-        .expect("Failed to listen for Ctrl+C signal");
-    log::info!("Received Ctrl+C. Shutting down...");
 }
