@@ -14,10 +14,10 @@ redis-storage = ["redis", "serde_json"]
 [dependencies]
 teloxide = { version = "0.17.0", features = ["webhooks", "webhooks-axum"] }
 tokio = { version = "1.48.0", features = ["rt-multi-thread", "macros"] }
-log = "0.4.28"
+log = "0.4.29"
 env_logger = "0.11.8"
 rust-i18n = "3.1.5"
-reqwest = { version = "0.12.24", default-features = false, features = ["json", "rustls-tls"]  }
+reqwest = { version = "0.12.25", default-features = false, features = ["json", "rustls-tls"]  }
 serde = "1.0.228"
 chrono = { version = "0.4.42", features = ["serde"] }
 byte-unit = "5.2.0"
@@ -27,7 +27,7 @@ bytes = "1.11.0"
 url = "2.5.7"
 warp = { version = "0.4.2", features = ["server"] }
 hightorrent = "0.4.0"
-derive_more = { version = "2.0.1", features = ["display"] }
+derive_more = { version = "2.1.0", features = ["display"] }
 async-trait = "0.1.89"
 redis = { version = "0.32.7", features = ["tokio-comp"], optional = true }
 serde_json = { version = "1.0.145", features = [], optional = true }
