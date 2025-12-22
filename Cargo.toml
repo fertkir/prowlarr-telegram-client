@@ -29,7 +29,7 @@ warp = { version = "0.4.2", features = ["server"] }
 hightorrent = "0.4.0"
 derive_more = { version = "2.1.1", features = ["display"] }
 async-trait = "0.1.89"
-redis = { version = "0.32.7", features = ["tokio-comp"], optional = true }
+redis = { version = "1.0.1", features = ["tokio-comp"], optional = true }
 serde_json = { version = "1.0.146", features = [], optional = true }
 thiserror = "2.0.17"
 
