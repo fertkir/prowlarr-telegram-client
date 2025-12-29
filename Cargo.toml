@@ -30,11 +30,11 @@ hightorrent = "0.4.0"
 derive_more = { version = "2.1.1", features = ["display"] }
 async-trait = "0.1.89"
 redis = { version = "0.32.7", features = ["tokio-comp"], optional = true }
-serde_json = { version = "1.0.146", features = [], optional = true }
+serde_json = { version = "1.0.148", features = [], optional = true }
 thiserror = "2.0.17"
 
 [dev-dependencies]
 temp-env = "0.3.6"
-tempfile = "3.23.0"
+tempfile = "3.24.0"
 wiremock = "0.6.5"
 mockall = "0.14.0"
