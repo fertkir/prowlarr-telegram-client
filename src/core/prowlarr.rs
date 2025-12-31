@@ -12,6 +12,7 @@ use crate::core::download_meta::{DownloadMeta, DownloadMetaProvider};
 pub struct ProwlarrClient {
     api_key: String,
     base_url: Url,
+    limit_param: String,
     indexer_id_params: String,
     client: Client,
 }
@@ -42,6 +43,7 @@ struct DownloadParams<'a> {
 const PROWLARR_API_KEY_ENV: &str = "PROWLARR_API_KEY";
 const PROWLARR_API_KEY_FILE_ENV: &str = "PROWLARR_API_KEY_FILE";
 const PROWLARR_BASE_URL_ENV: &str = "PROWLARR_BASE_URL";
+const PROWLARR_DEFAULT_LIMIT_PARAM_ENV: &str = "PROWLARR_DEFAULT_LIMIT_PARAM";
 const PROWLARR_INDEXER_IDS_ENV: &str = "PROWLARR_INDEXER_IDS";
 
 impl ProwlarrClient {
@@ -49,6 +51,9 @@ impl ProwlarrClient {
         ProwlarrClient {
             api_key: get_api_key(),
             base_url: ProwlarrClient::parse_base_url(),
+            limit_param: env::var(PROWLARR_DEFAULT_LIMIT_PARAM_ENV)
+                .map(|v| format!("&limit={}", v))
+                .unwrap_or_default(),
             indexer_id_params: ProwlarrClient::get_indexer_id_params(),
             client: Client::new(),
         }
@@ -80,8 +85,8 @@ impl ProwlarrClient {
     }
 
     pub async fn search(&self, query: &str) -> reqwest::Result<Vec<SearchResult>> {
-        self.client.get(format!("{}api/v1/search?apikey={}&query={}{}",
-                                self.base_url, self.api_key, query, self.indexer_id_params))
+        self.client.get(format!("{}api/v1/search?apikey={}{}&query={}{}", self.base_url,
+                                self.api_key, self.limit_param, query, self.indexer_id_params))
             .send()
             .await?
             .json::<Vec<SearchResult>>()
@@ -205,7 +210,7 @@ mod test {
     }
 
     mod client {
-        use crate::core::prowlarr::{ProwlarrClient, PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV};
+        use crate::core::prowlarr::{ProwlarrClient, PROWLARR_API_KEY_ENV, PROWLARR_BASE_URL_ENV, PROWLARR_DEFAULT_LIMIT_PARAM_ENV};
         use chrono::DateTime;
         use reqwest::header::CONTENT_TYPE;
         use reqwest::StatusCode;
@@ -228,6 +233,7 @@ mod test {
                 .and(path("/api/v1/search"))
                 .and(query_param("apikey", "key123"))
                 .and(query_param("query", "Ubuntu"))
+                .and(query_param("limit", "100"))
                 .respond_with(ResponseTemplate::new(200)
                     .set_body_string(
                         "[{\"guid\":\"101\",\"indexerId\":1,\"title\":\"Title\",\
@@ -239,6 +245,7 @@ mod test {
 
             let prowlarr_client = temp_env::with_vars(
                 [(PROWLARR_API_KEY_ENV, Some("key123")),
+                    (PROWLARR_DEFAULT_LIMIT_PARAM_ENV, Some("100")),
                     (PROWLARR_BASE_URL_ENV, Some(&mock_server.uri()))],
                 ProwlarrClient::from_env);
 
