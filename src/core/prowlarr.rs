@@ -51,11 +51,21 @@ impl ProwlarrClient {
         ProwlarrClient {
             api_key: get_api_key(),
             base_url: ProwlarrClient::parse_base_url(),
-            limit_param: env::var(PROWLARR_DEFAULT_LIMIT_PARAM_ENV)
-                .map(|v| format!("&limit={}", v))
-                .unwrap_or_default(),
+            limit_param: ProwlarrClient::get_limit_param(),
             indexer_id_params: ProwlarrClient::get_indexer_id_params(),
             client: Client::new(),
+        }
+    }
+
+    fn get_limit_param() -> String {
+        match env::var(PROWLARR_DEFAULT_LIMIT_PARAM_ENV) {
+            Ok(val) => {
+                let n: u32 = val
+                    .parse()
+                    .expect(&format!("{} must be a non-negative number", PROWLARR_DEFAULT_LIMIT_PARAM_ENV));
+                format!("&limit={}", n)
+            }
+            Err(_) => String::new(),
         }
     }
 
