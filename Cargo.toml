@@ -35,6 +35,6 @@ thiserror = "2.0.18"
 
 [dev-dependencies]
 temp-env = "0.3.6"
-tempfile = "3.24.0"
+tempfile = "3.25.0"
 wiremock = "0.6.5"
 mockall = "0.14.0"
