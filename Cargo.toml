@@ -15,7 +15,7 @@ redis-storage = ["redis", "serde_json"]
 teloxide = { version = "0.17.0", features = ["webhooks", "webhooks-axum"] }
 tokio = { version = "1.49.0", features = ["rt-multi-thread", "macros"] }
 log = "0.4.29"
-env_logger = "0.11.8"
+env_logger = "0.11.9"
 rust-i18n = "3.1.5"
 reqwest = { version = "0.12.28", default-features = false, features = ["json", "rustls-tls"]  }
 serde = "1.0.228"
