@@ -9,4 +9,3 @@ updates:
         update-types:
         - "minor"
         - "patch"
-# coment to trigger dependabot
