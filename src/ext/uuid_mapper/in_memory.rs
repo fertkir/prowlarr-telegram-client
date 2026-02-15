@@ -3,7 +3,7 @@ use std::sync::atomic::{AtomicU32, Ordering};
 use async_trait::async_trait;
 use dashmap::DashMap;
 use rand::distr::Alphanumeric;
-use rand::Rng;
+use rand::RngExt;
 
 use crate::core::traits::uuid_mapper::{MapperError, UuidMapper};
 

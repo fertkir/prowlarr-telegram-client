@@ -62,7 +62,7 @@ impl ProwlarrClient {
             Ok(val) => {
                 let n: u32 = val
                     .parse()
-                    .expect(&format!("{} must be a non-negative number", PROWLARR_DEFAULT_LIMIT_PARAM_ENV));
+                    .unwrap_or_else(|_| panic!("{} must be a non-negative number", PROWLARR_DEFAULT_LIMIT_PARAM_ENV));
                 format!("&limit={}", n)
             }
             Err(_) => String::new(),
