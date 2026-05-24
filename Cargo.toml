@@ -21,7 +21,7 @@ reqwest = { version = "0.12.28", default-features = false, features = ["json", "
 serde = "1.0.228"
 chrono = { version = "0.4.44", features = ["serde"] }
 byte-unit = "5.2.0"
-dashmap = "6.1.0"
+dashmap = "6.2.1"
 rand = "0.10.1"
 bytes = "1.11.1"
 url = "2.5.8"
@@ -30,7 +30,7 @@ hightorrent = "0.4.0"
 derive_more = { version = "2.1.1", features = ["display"] }
 async-trait = "0.1.89"
 redis = { version = "1.2.1", features = ["tokio-comp"], optional = true }
-serde_json = { version = "1.0.149", features = [], optional = true }
+serde_json = { version = "1.0.150", features = [], optional = true }
 thiserror = "2.0.18"
 
 [dev-dependencies]
