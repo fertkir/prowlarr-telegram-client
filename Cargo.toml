@@ -13,25 +13,25 @@ redis-storage = ["redis", "serde_json"]
 
 [dependencies]
 teloxide = { version = "0.17.0", features = ["webhooks", "webhooks-axum"] }
-tokio = { version = "1.52.3", features = ["rt-multi-thread", "macros"] }
-log = "0.4.32"
-env_logger = "0.11.10"
-rust-i18n = "4.1.0"
-reqwest = { version = "0.12.28", default-features = false, features = ["json", "rustls-tls"]  }
-serde = "1.0.228"
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros"] }
+log = "0.4.33"
+env_logger = "0.11.11"
+rust-i18n = "4.2.1"
+reqwest = { version = "0.13.4", default-features = false, features = ["json", "rustls"]  }
+serde = "1.0.229"
 chrono = { version = "0.4.45", features = ["serde"] }
-byte-unit = "5.2.0"
+byte-unit = "5.2.5"
 dashmap = "6.2.1"
-rand = "0.10.1"
-bytes = "1.11.1"
+rand = "0.10.2"
+bytes = "1.12.1"
 url = "2.5.8"
 warp = { version = "0.4.3", features = ["server"] }
 hightorrent = "0.4.1"
 derive_more = { version = "2.1.1", features = ["display"] }
-async-trait = "0.1.89"
-redis = { version = "1.2.2", features = ["tokio-comp"], optional = true }
-serde_json = { version = "1.0.150", features = [], optional = true }
-thiserror = "2.0.18"
+async-trait = "0.1.92"
+redis = { version = "1.5.0", features = ["tokio-comp"], optional = true }
+serde_json = { version = "1.0.151", features = [], optional = true }
+thiserror = "2.0.20"
 
 [dev-dependencies]
 temp-env = "0.3.6"
