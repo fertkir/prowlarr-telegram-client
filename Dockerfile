@@ -1,4 +1,4 @@
-FROM rust:1.90.0-alpine3.22 AS builder
+FROM rust:1.97.1-alpine3.24 AS builder
 RUN apk add --no-cache build-base libstdc++-dev openssl-dev
 WORKDIR /usr/src/app
 COPY . .
@@ -6,7 +6,7 @@ ENV OPENSSL_STATIC=true
 ENV RUSTFLAGS='-C target-feature=-crt-static'
 RUN cargo build --release
 
-FROM alpine:3.22
+FROM alpine:3.24
 RUN apk add --no-cache libgcc libc6-compat
 RUN addgroup -g 1000 appgroup \
     && adduser -u 1000 -G appgroup -s /bin/sh -D appuser
