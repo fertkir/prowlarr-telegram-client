@@ -34,6 +34,14 @@ Configuration is done through environment variables.
 ### Usage example
 
 ```yaml
+#!/bin/sh
+# /etc/transmission/torrent-done.sh - optional: if you want to be notified by the bot when a download completes
+
+curl -X PUT 'http://prowlarr-tg-client:12345/complete' -H 'Content-Type: application/json' \
+  -d "{\"hash\":\"$TR_TORRENT_HASH\",\"name\":\"${TR_TORRENT_NAME//\"/\\\"}\"}"
+```
+
+```yaml
 # docker-compose.yml
 
 services:
@@ -67,10 +75,13 @@ services:
       - PUID=1000  # TODO replace with your user id
       - PGID=1000  # TODO replace with your group id
       - TZ=Etc/UTC
-      - DOCKER_MODS=ghcr.io/fertkir/prowlarr-tg-client-transmission:main # download-complete callback support
-      - PROWLARR_CLIENT_SERVER_URL=http://prowlarr-tg-client:12345       # download-complete callback support
+      # the following env vars are optional: if you want to be notified by the bot when a download completes
+      - DOCKER_MODS=ghcr.io/linuxserver/mods:transmission-env-var-settings
+      - TRANSMISSION_SCRIPT_TORRENT_DONE_ENABLED=true
+      - TRANSMISSION_SCRIPT_TORRENT_DONE_FILENAME=/config/torrent-done.sh
     volumes:
       - transmission-config:/config
+      - /etc/transmission/torrent-done.sh:/config/torrent-done.sh # optional: if you want to be notified by the bot when a download completes
       - /home/username/Downloads:/downloads # TODO: replace with your downloads directory
     ports:
       - "9091:9091"
